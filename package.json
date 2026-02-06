@@ -1,0 +1,16 @@
+{
+  "name": "tsover-mono",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "patch": "bun scripts/patch.ts",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "format": "oxfmt packages apps scripts",
+    "format:check": "oxfmt packages apps scripts --check"
+  },
+  "devDependencies": {
+    "oxfmt": "^0.28.0",
+    "oxlint": "^1.43.0"
+  }
+}
