@@ -1,8 +1,8 @@
 /**
- * Vite plugin for TypeScript operator overloading
+ * Unplugin for TypeScript operator overloading
  */
 
-import type { Plugin } from "vite";
+import { createUnplugin, type UnpluginFactory } from "unplugin";
 import { ProgramManager } from "./type-checker.js";
 import { transformSourceFile } from "./transform.js";
 
@@ -29,9 +29,11 @@ export interface TsoverPluginOptions {
 }
 
 /**
- * Create a Vite plugin for TypeScript operator overloading
+ * Factory function for creating the tsover unplugin
  */
-export function tsoverPlugin(options: TsoverPluginOptions = {}): Plugin {
+export const unpluginFactory: UnpluginFactory<TsoverPluginOptions | undefined> = (
+  options = {},
+) => {
   const {
     tsconfigPath,
     moduleName = "tsover",
@@ -73,12 +75,12 @@ export function tsoverPlugin(options: TsoverPluginOptions = {}): Plugin {
       }
     },
 
-    transform(code: string, id: string) {
+    transformInclude(id: string) {
       // Only process TypeScript files
-      if (!shouldTransform(id, includePatterns, excludePatterns)) {
-        return null;
-      }
+      return shouldTransform(id, includePatterns, excludePatterns);
+    },
 
+    transform(code: string, id: string) {
       try {
         // Get the source file from the program
         const sourceFile = programManager.getSourceFile(id);
@@ -111,9 +113,12 @@ export function tsoverPlugin(options: TsoverPluginOptions = {}): Plugin {
         };
       } catch (error) {
         if (error instanceof Error) {
-          throw new Error(`[tsover] Failed to transform ${id}:\n${error.message}`, {
-            cause: error,
-          });
+          throw new Error(
+            `[tsover] Failed to transform ${id}:\n${error.message}`,
+            {
+              cause: error,
+            },
+          );
         }
         throw error;
       }
@@ -126,12 +131,47 @@ export function tsoverPlugin(options: TsoverPluginOptions = {}): Plugin {
       }
     },
   };
-}
+};
+
+/**
+ * Create the unplugin instance
+ */
+export const unplugin = createUnplugin(unpluginFactory);
+
+/**
+ * Vite plugin - for backward compatibility and convenience
+ * @deprecated Use `unplugin.vite` instead
+ */
+export const vitePlugin = unplugin.vite;
+
+/**
+ * Webpack plugin
+ */
+export const webpackPlugin = unplugin.webpack;
+
+/**
+ * Rollup plugin
+ */
+export const rollupPlugin = unplugin.rollup;
+
+/**
+ * esbuild plugin
+ */
+export const esbuildPlugin = unplugin.esbuild;
+
+/**
+ * Rspack plugin
+ */
+export const rspackPlugin = unplugin.rspack;
 
 /**
  * Check if a file should be transformed based on include/exclude patterns
  */
-function shouldTransform(id: string, include: string[], exclude: string[]): boolean {
+function shouldTransform(
+  id: string,
+  include: string[],
+  exclude: string[],
+): boolean {
   const { minimatch } = require("minimatch");
 
   // Check exclude patterns first
@@ -154,3 +194,6 @@ function shouldTransform(id: string, include: string[], exclude: string[]): bool
 // Re-export types
 export { ProgramManager } from "./type-checker.js";
 export { transformSourceFile } from "./transform.js";
+
+// Default export
+export default unplugin;

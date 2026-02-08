@@ -5,15 +5,21 @@
   "keywords": [
     "operator-overloading",
     "typescript",
-    "vite-plugin"
+    "unplugin",
+    "vite-plugin",
+    "webpack-plugin",
+    "rollup-plugin",
+    "esbuild-plugin"
   ],
   "license": "MIT",
   "bin": {
-    "tsoverc": "./dist/typescript/bin/tsc",
-    "tsoverserver": "./dist/typescript/bin/tsserver"
+    "tsc": "./bin/tsc",
+    "tsserver": "./bin/tsserver"
   },
   "files": [
     "dist",
+    "bin",
+    "lib",
     "README.md",
     "LICENSE",
     "!**/.gitattributes"
@@ -26,29 +32,46 @@
       "import": "./dist/index.mjs"
     },
     "./typescript": {
-      "types": "./dist/typescript/index.d.mts",
-      "import": "./dist/typescript/index.mjs"
+      "types": "./lib/index.d.mts",
+      "import": "./lib/index.mjs"
     },
     "./plugin": {
       "types": "./dist/plugin/index.d.mts",
       "import": "./dist/plugin/index.mjs"
+    },
+    "./plugin/vite": {
+      "types": "./dist/plugin/vite.d.mts",
+      "import": "./dist/plugin/vite.mjs"
+    },
+    "./plugin/webpack": {
+      "types": "./dist/plugin/webpack.d.mts",
+      "import": "./dist/plugin/webpack.mjs"
+    },
+    "./plugin/rollup": {
+      "types": "./dist/plugin/rollup.d.mts",
+      "import": "./dist/plugin/rollup.mjs"
+    },
+    "./plugin/esbuild": {
+      "types": "./dist/plugin/esbuild.d.mts",
+      "import": "./dist/plugin/esbuild.mjs"
+    },
+    "./plugin/rspack": {
+      "types": "./dist/plugin/rspack.d.mts",
+      "import": "./dist/plugin/rspack.mjs"
     }
   },
   "scripts": {
-    "patch": "bun scripts/patch.ts v5.9.2",
-    "build": "tsdown && mkdir -p dist/typescript && cp -r typescript/bin dist/typescript/ && cp -r typescript/lib dist/typescript/",
+    "patch": "bun scripts/patch.ts v5.9.2 && cp -R typescript/bin ./ && cp -R typescript/lib ./",
+    "build": "tsdown",
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "minimatch": "^9.0.0"
+    "minimatch": "^9.0.0",
+    "unplugin": "^2.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "tsdown": "^0.20.3",
-    "typescript": "^5.0.0",
-    "vite": "^5.0.0"
-  },
-  "peerDependencies": {
-    "vite": "^4.0.0 || ^5.0.0"
+    "typescript": "^5.0.0"
   }
 }

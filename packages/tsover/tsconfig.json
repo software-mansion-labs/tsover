@@ -14,10 +14,6 @@
     "declarationMap": true,
     "sourceMap": true,
     "types": ["@types/bun"],
-    "baseUrl": ".",
-    "paths": {
-      "tsdown/typescript": ["typescript/lib/typescript.d.ts", "typescript/lib/typescript.js"]
-    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

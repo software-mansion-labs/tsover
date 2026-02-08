@@ -1,1 +1,1 @@
-export { default } from "../../typescript/lib/typescript.js";
+export { default } from "../../lib/typescript.js";
