@@ -6,7 +6,7 @@ import { createUnplugin, type UnpluginFactory } from "unplugin";
 import { ProgramManager } from "./type-checker.js";
 import { transformSourceFile } from "./transform.js";
 
-export interface TsoverPluginOptions {
+export interface TsOverPluginOptions {
   /**
    * Path to tsconfig.json. If not provided, will search for it in the project root.
    */
@@ -31,7 +31,7 @@ export interface TsoverPluginOptions {
 /**
  * Factory function for creating the tsover unplugin
  */
-export const unpluginFactory: UnpluginFactory<TsoverPluginOptions | undefined> = (
+export const unpluginFactory: UnpluginFactory<TsOverPluginOptions | undefined> = (
   options = {},
 ) => {
   const {
@@ -190,10 +190,3 @@ function shouldTransform(
 
   return false;
 }
-
-// Re-export types
-export { ProgramManager } from "./type-checker.js";
-export { transformSourceFile } from "./transform.js";
-
-// Default export
-export default unplugin;

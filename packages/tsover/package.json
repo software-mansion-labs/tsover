@@ -1,5 +1,6 @@
 {
   "name": "tsover",
+  "type": "commonjs",
   "version": "0.0.0",
   "description": "Fork of TypeScript with operator overloading",
   "keywords": [
@@ -24,44 +25,45 @@
     "LICENSE",
     "!**/.gitattributes"
   ],
-  "main": "dist/index.mjs",
-  "types": "dist/index.d.mts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.mts",
+      "require": "./dist/index.js",
       "import": "./dist/index.mjs"
     },
     "./typescript": {
-      "types": "./lib/index.d.mts",
-      "import": "./lib/index.mjs"
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
     },
     "./plugin": {
-      "types": "./dist/plugin/index.d.mts",
-      "import": "./dist/plugin/index.mjs"
+      "types": "./dist/plugin/index.d.ts",
+      "default": "./dist/plugin/index.js"
     },
     "./plugin/vite": {
-      "types": "./dist/plugin/vite.d.mts",
-      "import": "./dist/plugin/vite.mjs"
+      "types": "./dist/plugin/vite.d.ts",
+      "default": "./dist/plugin/vite.js"
     },
     "./plugin/webpack": {
-      "types": "./dist/plugin/webpack.d.mts",
-      "import": "./dist/plugin/webpack.mjs"
+      "types": "./dist/plugin/webpack.d.ts",
+      "default": "./dist/plugin/webpack.js"
     },
     "./plugin/rollup": {
-      "types": "./dist/plugin/rollup.d.mts",
-      "import": "./dist/plugin/rollup.mjs"
+      "types": "./dist/plugin/rollup.d.ts",
+      "default": "./dist/plugin/rollup.js"
     },
     "./plugin/esbuild": {
-      "types": "./dist/plugin/esbuild.d.mts",
-      "import": "./dist/plugin/esbuild.mjs"
+      "types": "./dist/plugin/esbuild.d.ts",
+      "default": "./dist/plugin/esbuild.js"
     },
     "./plugin/rspack": {
-      "types": "./dist/plugin/rspack.d.mts",
-      "import": "./dist/plugin/rspack.mjs"
+      "types": "./dist/plugin/rspack.d.ts",
+      "default": "./dist/plugin/rspack.js"
     }
   },
   "scripts": {
-    "patch": "bun scripts/patch.ts v5.9.2 && cp -R typescript/bin ./ && cp -R typescript/lib ./",
+    "patch": "bun scripts/patch.ts v5.9.3 && cp -R typescript/bin ./ && cp -R typescript/built/local ./lib",
     "build": "tsdown",
     "prepublishOnly": "pnpm run build"
   },

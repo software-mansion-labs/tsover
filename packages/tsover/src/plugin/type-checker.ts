@@ -2,7 +2,7 @@
  * TypeScript program manager with caching
  */
 
-import ts from "./tsover";
+import ts from "./tsover.js";
 import * as path from "path";
 
 const cachedProgram: ts.Program | null = null;
@@ -35,7 +35,7 @@ export class ProgramManager {
     if (!configPath) {
       throw new Error(
         "Could not find tsconfig.json. Please ensure you have a tsconfig.json in your project root " +
-          "or specify a custom path via the tsconfigPath option.",
+        "or specify a custom path via the tsconfigPath option.",
       );
     }
 

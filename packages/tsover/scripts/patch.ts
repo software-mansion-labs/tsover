@@ -1,6 +1,6 @@
 import { $ } from "bun";
 import { existsSync } from "fs";
-import { rm, mkdir } from "fs/promises";
+import { rm, mkdir, readFile, writeFile } from "fs/promises";
 import { resolve } from "path";
 
 const tag = process.argv[2];
@@ -68,11 +68,95 @@ try {
   console.log("Installing dependencies ...");
   await $`npm install`;
 
-  // Build TypeScript using hereby
-  console.log("Building TypeScript with hereby ...");
+  // Apply patches
+  console.log("Applying tsover patches...");
+
+  // Patch checker.ts - add operatorPlus support
+  const checkerPath = resolve(typescriptTargetDir, "src", "compiler", "checker.ts");
+  let checkerContent = await readFile(checkerPath, "utf-8");
+
+  const bigintPattern = /else if \(isTypeAssignableToKind\(leftType, TypeFlags\.BigIntLike, \/\*strict\*\/ true\) && isTypeAssignableToKind\(rightType, TypeFlags\.BigIntLike, \/\*strict\*\/ true\)\) \{\s*\/\/ If both operands are of the BigInt primitive type, the result is of the BigInt primitive type\.\s*resultType = bigintType;\s*\}\s*else if \(isTypeAssignableToKind\(leftType, TypeFlags\.StringLike/;
+
+  const bigintReplacement = `else if (isTypeAssignableToKind(leftType, TypeFlags.BigIntLike, /*strict*/ true) && isTypeAssignableToKind(rightType, TypeFlags.BigIntLike, /*strict*/ true)) {
+                    // If both operands are of the BigInt primitive type, the result is of the BigInt primitive type.
+                    resultType = bigintType;
+                }
+                else if (!(leftType.flags & (TypeFlags.Primitive | TypeFlags.Any | TypeFlags.Never | TypeFlags.Unknown))) {
+                    // Check if left operand has Symbol.operatorPlus defined
+                    const operatorPlusProp = getPropertyOfType(leftType, getPropertyNameForKnownSymbolName("operatorPlus"));
+                    if (operatorPlusProp) {
+                        const propType = getTypeOfSymbol(operatorPlusProp);
+                        const signatures = getSignaturesOfType(propType, SignatureKind.Call);
+                        if (signatures.length > 0) {
+                            // Use the return type of the first call signature
+                            resultType = getReturnTypeOfSignature(signatures[0]);
+                        }
+                    }
+                    // If no valid operatorPlus found, resultType remains undefined and will fall through to stringType
+                    if (!resultType) {
+                        resultType = stringType;
+                    }
+                }
+                else if (isTypeAssignableToKind(leftType, TypeFlags.StringLike`;
+
+  if (bigintPattern.test(checkerContent)) {
+    checkerContent = checkerContent.replace(bigintPattern, bigintReplacement);
+    await writeFile(checkerPath, checkerContent);
+    console.log("  ✓ Patched checker.ts");
+  } else {
+    console.error("  ✗ Could not find pattern in checker.ts");
+  }
+
+  // Patch commandLineParser.ts - add tsover lib entry
+  const cmdParserPath = resolve(typescriptTargetDir, "src", "compiler", "commandLineParser.ts");
+  let cmdParserContent = await readFile(cmdParserPath, "utf-8");
+
+  // Look for the esnext.sharedmemory entry and insert tsover after it
+  const cmdParserPattern = /(\[\"esnext\.sharedmemory\", \"lib\.esnext\.sharedmemory\.d\.ts\"\],)/;
+  if (cmdParserPattern.test(cmdParserContent)) {
+    cmdParserContent = cmdParserContent.replace(
+      cmdParserPattern,
+      `$1\n    ["tsover", "lib.tsover.d.ts"],`
+    );
+    await writeFile(cmdParserPath, cmdParserContent);
+    console.log("  ✓ Patched commandLineParser.ts");
+  } else {
+    console.error("  ✗ Could not find pattern in commandLineParser.ts");
+  }
+
+  // Patch libs.json - add tsover to end of libs array
+  const libsJsonPath = resolve(typescriptTargetDir, "src", "lib", "libs.json");
+  let libsJsonContent = await readFile(libsJsonPath, "utf-8");
+
+  // Find the end of the libs array and append tsover before the closing bracket
+  const libsArrayEndPattern = /(        "esnext\.full"\s*\n    \],)/;
+  if (libsArrayEndPattern.test(libsJsonContent)) {
+    libsJsonContent = libsJsonContent.replace(
+      libsArrayEndPattern,
+      `        "tsover",\n$1`
+    );
+    await writeFile(libsJsonPath, libsJsonContent);
+    console.log("  ✓ Patched libs.json");
+  } else {
+    console.error("  ✗ Could not find libs array end in libs.json");
+  }
+
+  // Create tsover.d.ts
+  const tsoverDtsPath = resolve(typescriptTargetDir, "src", "lib", "tsover.d.ts");
+  const tsoverDtsContent = `interface SymbolConstructor {\n    readonly operatorPlus: unique symbol;\n    readonly deferOperation: unique symbol;\n}\n`;
+  await writeFile(tsoverDtsPath, tsoverDtsContent);
+  console.log("  ✓ Created tsover.d.ts");
+
+  // Rebuild after patching
+  console.log("Rebuilding TypeScript with patches...");
   await $`npx --yes hereby@latest`;
 
   console.log(`✓ Successfully patched TypeScript ${tag}`);
+
+  // Show diff
+  console.log("\nChanges applied:");
+  console.log("================");
+  await $`git diff`.cwd(typescriptTargetDir);
 } finally {
   // Restore original working directory
   process.chdir(originalCwd);

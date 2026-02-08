@@ -3,6 +3,13 @@ import typescriptLogo from './typescript.svg'
 import viteLogo from '/vite.svg'
 import { setupCounter } from './counter.ts'
 
+import { Vec2f } from './vec2f.ts';
+
+const a = new Vec2f(1, 2);
+const b = new Vec2f(3, 4);
+const c = a + b;
+console.log(c);
+
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
     <a href="https://vite.dev" target="_blank">

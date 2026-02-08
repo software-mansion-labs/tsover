@@ -3,16 +3,17 @@
  */
 
 import ts from "./tsover";
+import type TS from 'typescript';
 
 /**
  * Generate a unique identifier for the tsover import
  * Avoids conflicts with existing identifiers in the file
  */
-export function generateUniqueIdentifier(sourceFile: ts.SourceFile, baseName: string): string {
+export function generateUniqueIdentifier(sourceFile: TS.SourceFile, baseName: string): string {
   const usedNames = new Set<string>();
 
   // Collect all identifiers in the file
-  function visit(node: ts.Node) {
+  function visit(node: TS.Node) {
     if (ts.isIdentifier(node)) {
       usedNames.add(node.text);
     }
@@ -38,9 +39,9 @@ export function generateUniqueIdentifier(sourceFile: ts.SourceFile, baseName: st
  * Check if an import for the given module already exists
  */
 export function hasImport(
-  sourceFile: ts.SourceFile,
+  sourceFile: TS.SourceFile,
   moduleName: string,
-): ts.ImportDeclaration | undefined {
+): TS.ImportDeclaration | undefined {
   for (const statement of sourceFile.statements) {
     if (
       ts.isImportDeclaration(statement) &&
@@ -56,7 +57,7 @@ export function hasImport(
 /**
  * Get the identifier name from an import declaration
  */
-export function getImportIdentifier(importDecl: ts.ImportDeclaration): string | undefined {
+export function getImportIdentifier(importDecl: TS.ImportDeclaration): string | undefined {
   if (!importDecl.importClause) return undefined;
 
   const namedBindings = importDecl.importClause.namedBindings;

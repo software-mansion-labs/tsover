@@ -4,5 +4,4 @@
 
 import { unplugin } from "./index.js";
 
-export const rspackPlugin = unplugin.rspack;
-export default rspackPlugin;
+export default unplugin.rspack;

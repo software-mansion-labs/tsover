@@ -1,6 +1,7 @@
 import { defineConfig } from "tsdown";
 
 export default defineConfig({
+  format: ['cjs', 'esm'],
   entry: [
     "src/index.ts",
     "src/plugin/index.ts",
@@ -11,7 +12,10 @@ export default defineConfig({
     "src/plugin/rspack.ts",
   ],
   platform: "neutral",
+  external: [
+    '../../lib/typescript.js'
+  ],
   alias: {
-    tsover: "./dist/index.mjs",
-  },
+    'typescript': '../../lib/typescript.js',
+  }
 });
