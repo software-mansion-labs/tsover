@@ -1,0 +1,54 @@
+{
+  "name": "tsover",
+  "version": "0.0.0",
+  "description": "Fork of TypeScript with operator overloading",
+  "keywords": [
+    "operator-overloading",
+    "typescript",
+    "vite-plugin"
+  ],
+  "license": "MIT",
+  "bin": {
+    "tsoverc": "./dist/typescript/bin/tsc",
+    "tsoverserver": "./dist/typescript/bin/tsserver"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "!**/.gitattributes"
+  ],
+  "main": "dist/index.mjs",
+  "types": "dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./typescript": {
+      "types": "./dist/typescript/index.d.mts",
+      "import": "./dist/typescript/index.mjs"
+    },
+    "./plugin": {
+      "types": "./dist/plugin/index.d.mts",
+      "import": "./dist/plugin/index.mjs"
+    }
+  },
+  "scripts": {
+    "patch": "bun scripts/patch.ts v5.9.2",
+    "build": "tsdown && mkdir -p dist/typescript && cp -r typescript/bin dist/typescript/ && cp -r typescript/lib dist/typescript/",
+    "prepublishOnly": "pnpm run build"
+  },
+  "dependencies": {
+    "minimatch": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsdown": "^0.20.3",
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0"
+  },
+  "peerDependencies": {
+    "vite": "^4.0.0 || ^5.0.0"
+  }
+}

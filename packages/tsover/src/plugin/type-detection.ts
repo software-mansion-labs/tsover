@@ -2,7 +2,7 @@
  * Type checking utilities for detecting Symbol.operatorPlus
  */
 
-import * as ts from "tsover";
+import ts from "./tsover";
 
 /**
  * Check if a type has the Symbol.operatorPlus property

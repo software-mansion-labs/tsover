@@ -2,7 +2,7 @@
  * Utility functions for the plugin
  */
 
-import * as ts from "tsover";
+import ts from "./tsover";
 
 /**
  * Generate a unique identifier for the tsover import

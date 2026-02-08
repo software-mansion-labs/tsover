@@ -1,19 +1,17 @@
-# tsover-polyfill
+# tsover
 
-Polyfill for TypeScript operator overloading via `Symbol.operatorPlus`.
+A fork of TypeScript that adds only one functionality to the type checker... operator **over**loading.
 
 ## Installation
 
 ```bash
-npm install tsover-polyfill
+npm install tsover
 ```
-
-Make sure you also have `tsover` (the TypeScript fork) installed as a peer dependency.
 
 ## Runtime Usage
 
 ```typescript
-import { plus } from "tsover-polyfill";
+import { plus } from "tsover";
 
 class Vector {
   constructor(
@@ -33,20 +31,20 @@ const c = plus(a, b); // Uses Vector's operatorPlus method
 
 ## Vite Plugin
 
-The plugin automatically transforms `a + b` to `tsoverPolyfill.plus(a, b)` when either operand has the `Symbol.operatorPlus` property.
+The plugin automatically transforms `a + b` to `tsover.plus(a, b)` when either operand has the `Symbol.operatorPlus` property.
 
 ### Setup
 
 ```typescript
 // vite.config.ts
 import { defineConfig } from "vite";
-import { tsoverPlugin } from "tsover-polyfill/plugin";
+import { tsoverPlugin } from "tsover/plugin";
 
 export default defineConfig({
   plugins: [
     tsoverPlugin({
       tsconfigPath: "./tsconfig.json", // optional
-      moduleName: "tsover-polyfill", // optional
+      moduleName: "tsover", // optional
       include: ["**/*.ts"], // optional
       exclude: ["node_modules/**"], // optional
     }),
@@ -74,7 +72,7 @@ const result = new Vector(1, 2) + new Vector(3, 4);
 Output:
 
 ```typescript
-import * as tso from "tsover-polyfill";
+import * as tso from "tsover";
 
 class Vector {
   x: number;
@@ -111,7 +109,7 @@ Vite plugin that transforms TypeScript code.
 
 2. **Transformation**: When the plugin finds a `+` operation where either operand has `Symbol.operatorPlus`, it:
    - Adds an import statement for the runtime if not already present
-   - Replaces `a + b` with `tsoverPolyfill.plus(a, b)`
+   - Replaces `a + b` with `tsover.plus(a, b)`
 
 3. **Caching**: The TypeScript program is cached for the duration of the process for performance.
 

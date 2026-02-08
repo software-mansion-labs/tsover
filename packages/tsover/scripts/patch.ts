@@ -12,7 +12,7 @@ if (!tag) {
   let url: string | null = "https://api.github.com/repos/microsoft/TypeScript/tags?per_page=100";
 
   while (url) {
-    const response = await fetch(url);
+    const response: Response = await fetch(url);
     if (!response.ok) {
       console.error("Failed to fetch tags from GitHub");
       process.exit(1);
@@ -42,27 +42,26 @@ if (!tag) {
   process.exit(1);
 }
 
-const versionsDir = resolve(import.meta.dir, "..", "versions");
-const tagDir = resolve(versionsDir, tag);
+const typescriptTargetDir = resolve(import.meta.dir, "..", "typescript");
 
 console.log(`Patching TypeScript ${tag} ...`);
 
 // Remove existing directory if it exists
-if (existsSync(tagDir)) {
-  console.log(`Removing existing directory: ${tagDir}`);
-  await rm(tagDir, { recursive: true, force: true });
+if (existsSync(typescriptTargetDir)) {
+  console.log(`Removing existing directory: ${typescriptTargetDir}`);
+  await rm(typescriptTargetDir, { recursive: true, force: true });
 }
 
 // Create versions directory if it doesn't exist
-await mkdir(versionsDir, { recursive: true });
+await mkdir(typescriptTargetDir, { recursive: true });
 
 // Clone the TypeScript repository (shallow clone, single branch, single commit)
 console.log(`Cloning microsoft/TypeScript@${tag} ...`);
-await $`git clone --depth 1 --branch ${tag} --single-branch https://github.com/microsoft/TypeScript.git ${tagDir}`;
+await $`git clone --depth 1 --branch ${tag} --single-branch https://github.com/microsoft/TypeScript.git ${typescriptTargetDir}`;
 
 // Change to the tag directory
 const originalCwd = process.cwd();
-process.chdir(tagDir);
+process.chdir(typescriptTargetDir);
 
 try {
   // Install dependencies

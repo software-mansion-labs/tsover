@@ -3,7 +3,6 @@
  */
 
 import type { Plugin } from "vite";
-import * as ts from "tsover";
 import { ProgramManager } from "./type-checker.js";
 import { transformSourceFile } from "./transform.js";
 
@@ -14,7 +13,7 @@ export interface TsoverPluginOptions {
   tsconfigPath?: string;
 
   /**
-   * Module name to import the runtime from. Defaults to 'tsover-polyfill'.
+   * Module name to import the runtime from. Defaults to 'tsover'.
    */
   moduleName?: string;
 
@@ -35,7 +34,7 @@ export interface TsoverPluginOptions {
 export function tsoverPlugin(options: TsoverPluginOptions = {}): Plugin {
   const {
     tsconfigPath,
-    moduleName = "tsover-polyfill",
+    moduleName = "tsover",
     include,
     exclude = "node_modules/**",
   } = options;
@@ -57,7 +56,7 @@ export function tsoverPlugin(options: TsoverPluginOptions = {}): Plugin {
     : ["node_modules/**"];
 
   return {
-    name: "tsover-polyfill",
+    name: "tsover",
     enforce: "pre", // Run before other transforms
 
     buildStart() {
@@ -66,7 +65,9 @@ export function tsoverPlugin(options: TsoverPluginOptions = {}): Plugin {
         programManager = new ProgramManager({ tsconfigPath });
       } catch (error) {
         if (error instanceof Error) {
-          throw new Error(`[tsover-polyfill] Failed to initialize: ${error.message}`, { cause: error });
+          throw new Error(`[tsover] Failed to initialize: ${error.message}`, {
+            cause: error,
+          });
         }
         throw error;
       }
@@ -110,7 +111,9 @@ export function tsoverPlugin(options: TsoverPluginOptions = {}): Plugin {
         };
       } catch (error) {
         if (error instanceof Error) {
-          throw new Error(`[tsover-polyfill] Failed to transform ${id}:\n${error.message}`, { cause: error });
+          throw new Error(`[tsover] Failed to transform ${id}:\n${error.message}`, {
+            cause: error,
+          });
         }
         throw error;
       }
@@ -149,6 +152,5 @@ function shouldTransform(id: string, include: string[], exclude: string[]): bool
 }
 
 // Re-export types
-export type { TsoverPluginOptions };
 export { ProgramManager } from "./type-checker.js";
 export { transformSourceFile } from "./transform.js";
