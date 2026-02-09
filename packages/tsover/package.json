@@ -63,7 +63,7 @@
     }
   },
   "scripts": {
-    "patch": "bun scripts/patch.ts v5.9.3 && cp -R typescript/bin ./ && cp -R typescript/built/local ./lib",
+    "patch": "bun scripts/patch.ts v5.9.3 && cp -R typescript/bin ./ && cp -R typescript/built/local ./lib && cp typescript/LICENSE.txt ./lib && cp typescript/LICENSE.txt ./bin",
     "bench-fn-overhead": "pnpm run build && bun scripts/bench-fn-overhead.ts",
     "build": "tsdown",
     "prepublishOnly": "pnpm run build"
