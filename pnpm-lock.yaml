@@ -40,9 +40,15 @@ importers:
       '@types/node':
         specifier: ^20.0.0
         version: 20.19.33
+      tinybench:
+        specifier: ^6.0.0
+        version: 6.0.0
       tsdown:
         specifier: ^0.20.3
         version: 0.20.3(typescript@5.9.3)
+      tsover:
+        specifier: workspace:*
+        version: 'link:'
       typescript:
         specifier: ^5.0.0
         version: 5.9.3
@@ -648,6 +654,10 @@ packages:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
     engines: {node: '>=0.10.0'}
 
+  tinybench@6.0.0:
+    resolution: {integrity: sha512-BWlWpVbbZXaYjRV0twGLNQO00Zj4HA/sjLOQP2IvzQqGwRGp+2kh7UU3ijyJ3ywFRogYDRbiHDMrUOfaMnN56g==}
+    engines: {node: '>=20.0.0'}
+
   tinyexec@1.0.2:
     resolution: {integrity: sha512-W/KYk+NFhkmsYpuHq5JykngiOCnxeVL8v8dFnqxSD8qEEdRfXk1SDM6JzNqcERbcGYj9tMrDQBYV9cjgnunFIg==}
     engines: {node: '>=18'}
@@ -1172,6 +1182,8 @@ snapshots:
   semver@7.7.4: {}
 
   source-map-js@1.2.1: {}
+
+  tinybench@6.0.0: {}
 
   tinyexec@1.0.2: {}
 

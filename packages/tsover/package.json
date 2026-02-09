@@ -1,16 +1,15 @@
 {
   "name": "tsover",
-  "type": "commonjs",
   "version": "0.0.0",
   "description": "Fork of TypeScript with operator overloading",
   "keywords": [
+    "esbuild-plugin",
     "operator-overloading",
+    "rollup-plugin",
     "typescript",
     "unplugin",
     "vite-plugin",
-    "webpack-plugin",
-    "rollup-plugin",
-    "esbuild-plugin"
+    "webpack-plugin"
   ],
   "license": "MIT",
   "bin": {
@@ -25,17 +24,18 @@
     "LICENSE",
     "!**/.gitattributes"
   ],
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "type": "commonjs",
+  "main": "lib/typescript.js",
+  "types": "lib/typescript.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.mts",
-      "require": "./dist/index.js",
-      "import": "./dist/index.mjs"
-    },
-    "./typescript": {
       "types": "./lib/index.d.ts",
       "default": "./lib/index.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime/index.d.mts",
+      "require": "./dist/runtime/index.js",
+      "import": "./dist/runtime/index.mjs"
     },
     "./plugin": {
       "types": "./dist/plugin/index.d.ts",
@@ -64,6 +64,7 @@
   },
   "scripts": {
     "patch": "bun scripts/patch.ts v5.9.3 && cp -R typescript/bin ./ && cp -R typescript/built/local ./lib",
+    "bench-fn-overhead": "pnpm run build && bun scripts/bench-fn-overhead.ts",
     "build": "tsdown",
     "prepublishOnly": "pnpm run build"
   },
@@ -73,7 +74,9 @@
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "tinybench": "^6.0.0",
     "tsdown": "^0.20.3",
+    "tsover": "workspace:*",
     "typescript": "^5.0.0"
   }
 }

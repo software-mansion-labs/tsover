@@ -12,6 +12,8 @@ declare global {
     readonly operatorStar: unique symbol;
     readonly operatorSlash: unique symbol;
     readonly operatorEqEq: unique symbol;
+
+    readonly deferOperation: unique symbol;
   }
 }
 
@@ -31,6 +33,15 @@ polyfillSymbol("operatorPlus");
 polyfillSymbol("operatorStar");
 polyfillSymbol("operatorSlash");
 polyfillSymbol("operatorEqEq");
+polyfillSymbol("deferOperation");
+
+export const Operator = {
+  plus: Symbol.operatorPlus,
+  star: Symbol.operatorStar,
+  slash: Symbol.operatorSlash,
+  eqEq: Symbol.operatorEqEq,
+  deferOperation: Symbol.deferOperation,
+};
 
 type WithBinOp<T extends symbol> = {
   [Key in T]: (a: unknown, b: unknown) => unknown;
@@ -43,12 +54,21 @@ function hasOperator<T extends symbol>(value: unknown, operator: T): value is Wi
   return typeof (value as Record<symbol, unknown>)?.[operator] === "function";
 }
 
+function isValid(value: unknown): value is number {
+  return typeof value !== "object" && typeof value !== "function";
+}
+
 /**
  * Performs the + operation with support for operator overloading
  * If either operand has Symbol.operatorPlus, uses that operator
  * Otherwise falls back to standard JavaScript + behavior
  */
-export function plus(a: unknown, b: unknown): unknown {
+export function add(a: unknown, b: unknown): unknown {
+  if (isValid(a) && isValid(b)) {
+    // Fast path for numbers
+    return a + b;
+  }
+
   // Check if left operand has operator overloading
   if (hasOperator(a, Symbol.operatorPlus)) {
     return a[Symbol.operatorPlus](a, b);
@@ -60,5 +80,5 @@ export function plus(a: unknown, b: unknown): unknown {
   }
 
   // Fall back to standard JavaScript + operator
-  return (a as number) + (b as number);
+  return (a as string) + (b as string);
 }

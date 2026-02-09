@@ -13,7 +13,7 @@ export interface TsOverPluginOptions {
   tsconfigPath?: string;
 
   /**
-   * Module name to import the runtime from. Defaults to 'tsover'.
+   * Module name to import the runtime from. Defaults to 'tsover/runtime'.
    */
   moduleName?: string;
 
@@ -31,12 +31,10 @@ export interface TsOverPluginOptions {
 /**
  * Factory function for creating the tsover unplugin
  */
-export const unpluginFactory: UnpluginFactory<TsOverPluginOptions | undefined> = (
-  options = {},
-) => {
+export const unpluginFactory: UnpluginFactory<TsOverPluginOptions | undefined> = (options = {}) => {
   const {
     tsconfigPath,
-    moduleName = "tsover",
+    moduleName = "tsover/runtime",
     include,
     exclude = "node_modules/**",
   } = options;
@@ -113,12 +111,9 @@ export const unpluginFactory: UnpluginFactory<TsOverPluginOptions | undefined> =
         };
       } catch (error) {
         if (error instanceof Error) {
-          throw new Error(
-            `[tsover] Failed to transform ${id}:\n${error.message}`,
-            {
-              cause: error,
-            },
-          );
+          throw new Error(`[tsover] Failed to transform ${id}:\n${error.message}`, {
+            cause: error,
+          });
         }
         throw error;
       }
@@ -167,11 +162,7 @@ export const rspackPlugin = unplugin.rspack;
 /**
  * Check if a file should be transformed based on include/exclude patterns
  */
-function shouldTransform(
-  id: string,
-  include: string[],
-  exclude: string[],
-): boolean {
+function shouldTransform(id: string, include: string[], exclude: string[]): boolean {
   const { minimatch } = require("minimatch");
 
   // Check exclude patterns first

@@ -11,7 +11,7 @@ npm install tsover
 ## Runtime Usage
 
 ```typescript
-import { plus } from "tsover";
+import { add, Operator } from "tsover/runtime";
 
 class Vector {
   constructor(
@@ -19,14 +19,14 @@ class Vector {
     public y: number,
   ) {}
 
-  [Symbol.operatorPlus](other: Vector): Vector {
+  [Operator.plus](other: Vector): Vector {
     return new Vector(this.x + other.x, this.y + other.y);
   }
 }
 
 const a = new Vector(1, 2);
 const b = new Vector(3, 4);
-const c = plus(a, b); // Uses Vector's operatorPlus method
+const c = add(a, b); // Uses Vector's Operator.plus method
 ```
 
 ## Vite Plugin
@@ -99,7 +99,7 @@ Vite plugin that transforms TypeScript code.
 #### Options
 
 - `tsconfigPath?: string` - Path to tsconfig.json. If not provided, searches for it in the project root.
-- `moduleName?: string` - Module name to import the runtime from. Defaults to `'tsover-polyfill'`.
+- `moduleName?: string` - Module name to import the runtime from. Defaults to `'tsover/runtime'`.
 - `include?: string | string[]` - Include patterns for files to transform. Defaults to all TypeScript files.
 - `exclude?: string | string[]` - Exclude patterns for files to skip. Defaults to `node_modules/**`.
 

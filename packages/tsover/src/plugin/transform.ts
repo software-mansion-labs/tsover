@@ -4,11 +4,7 @@
 
 import ts from "./tsover.js";
 import { shouldTransformBinaryExpression } from "./type-detection.js";
-import {
-  generateUniqueIdentifier,
-  hasImport,
-  getImportIdentifier,
-} from "./utils.js";
+import { generateUniqueIdentifier, hasImport, getImportIdentifier } from "./utils.js";
 
 export interface TransformResult {
   code: string;
@@ -22,11 +18,9 @@ export interface TransformOptions {
 }
 
 /**
- * Transform a source file to replace + operators with tsover.plus() calls
+ * Transform a source file to replace + operators with tsover.add() calls
  */
-export function transformSourceFile(
-  options: TransformOptions,
-): TransformResult {
+export function transformSourceFile(options: TransformOptions): TransformResult {
   const { checker, sourceFile, moduleName = "tsover" } = options;
 
   // Track if we need to add an import
@@ -44,10 +38,7 @@ export function transformSourceFile(
     return (sourceFile) => {
       function visit(node: ts.Node): ts.Node {
         // Check if this is a binary expression with + operator
-        if (
-          ts.isBinaryExpression(node) &&
-          node.operatorToken.kind === ts.SyntaxKind.PlusToken
-        ) {
+        if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
           // Check if either operand has operator overloading
           if (shouldTransformBinaryExpression(node, checker)) {
             needsImport = true;
@@ -57,11 +48,11 @@ export function transformSourceFile(
               importIdentifier = generateUniqueIdentifier(sourceFile, "tso");
             }
 
-            // Replace a + b with tsover.plus(a, b)
+            // Replace a + b with tsover.add(a, b)
             return ts.factory.createCallExpression(
               ts.factory.createPropertyAccessExpression(
                 ts.factory.createIdentifier(importIdentifier!),
-                "plus",
+                "add",
               ),
               undefined, // type arguments
               [
@@ -86,11 +77,7 @@ export function transformSourceFile(
   // Add import statement if needed
   let finalSourceFile = transformedSourceFile;
   if (needsImport && !existingImport && importIdentifier) {
-    finalSourceFile = addImportStatement(
-      transformedSourceFile,
-      importIdentifier,
-      moduleName,
-    );
+    finalSourceFile = addImportStatement(transformedSourceFile, importIdentifier, moduleName);
   }
 
   // Print the transformed code

@@ -75,9 +75,11 @@ try {
   const checkerPath = resolve(typescriptTargetDir, "src", "compiler", "checker.ts");
   let checkerContent = await readFile(checkerPath, "utf-8");
 
-  const bigintPattern = /else if \(isTypeAssignableToKind\(leftType, TypeFlags\.BigIntLike, \/\*strict\*\/ true\) && isTypeAssignableToKind\(rightType, TypeFlags\.BigIntLike, \/\*strict\*\/ true\)\) \{\s*\/\/ If both operands are of the BigInt primitive type, the result is of the BigInt primitive type\.\s*resultType = bigintType;\s*\}\s*else if \(isTypeAssignableToKind\(leftType, TypeFlags\.StringLike/;
+  const bigintPattern =
+    /else if \(isTypeAssignableToKind\(leftType, TypeFlags\.BigIntLike, \/\*strict\*\/ true\) && isTypeAssignableToKind\(rightType, TypeFlags\.BigIntLike, \/\*strict\*\/ true\)\) \{\s*\/\/ If both operands are of the BigInt primitive type, the result is of the BigInt primitive type\.\s*resultType = bigintType;\s*\}\s*else if \(isTypeAssignableToKind\(leftType, TypeFlags\.StringLike/;
 
-  const bigintReplacement = `else if (isTypeAssignableToKind(leftType, TypeFlags.BigIntLike, /*strict*/ true) && isTypeAssignableToKind(rightType, TypeFlags.BigIntLike, /*strict*/ true)) {
+  const bigintReplacement = `\
+                else if (isTypeAssignableToKind(leftType, TypeFlags.BigIntLike, /*strict*/ true) && isTypeAssignableToKind(rightType, TypeFlags.BigIntLike, /*strict*/ true)) {
                     // If both operands are of the BigInt primitive type, the result is of the BigInt primitive type.
                     resultType = bigintType;
                 }
@@ -112,11 +114,11 @@ try {
   let cmdParserContent = await readFile(cmdParserPath, "utf-8");
 
   // Look for the esnext.sharedmemory entry and insert tsover after it
-  const cmdParserPattern = /(\[\"esnext\.sharedmemory\", \"lib\.esnext\.sharedmemory\.d\.ts\"\],)/;
+  const cmdParserPattern = /(\["esnext\.sharedmemory", "lib\.esnext\.sharedmemory\.d\.ts"\],)/;
   if (cmdParserPattern.test(cmdParserContent)) {
     cmdParserContent = cmdParserContent.replace(
       cmdParserPattern,
-      `$1\n    ["tsover", "lib.tsover.d.ts"],`
+      `$1\n    ["tsover", "lib.tsover.d.ts"],`,
     );
     await writeFile(cmdParserPath, cmdParserContent);
     console.log("  ✓ Patched commandLineParser.ts");
@@ -131,10 +133,7 @@ try {
   // Find the end of the libs array and append tsover before the closing bracket
   const libsArrayEndPattern = /(        "esnext\.full"\s*\n    \],)/;
   if (libsArrayEndPattern.test(libsJsonContent)) {
-    libsJsonContent = libsJsonContent.replace(
-      libsArrayEndPattern,
-      `        "tsover",\n$1`
-    );
+    libsJsonContent = libsJsonContent.replace(libsArrayEndPattern, `        "tsover",\n$1`);
     await writeFile(libsJsonPath, libsJsonContent);
     console.log("  ✓ Patched libs.json");
   } else {
