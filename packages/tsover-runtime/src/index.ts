@@ -41,7 +41,7 @@ export const Operator = {
   slash: Symbol.operatorSlash,
   eqEq: Symbol.operatorEqEq,
   deferOperation: Symbol.deferOperation,
-};
+} as const;
 
 type WithBinOp<T extends symbol> = {
   [Key in T]: (a: unknown, b: unknown) => unknown;
@@ -64,11 +64,6 @@ function isValid(value: unknown): value is number {
  * Otherwise falls back to standard JavaScript + behavior
  */
 export function add(a: unknown, b: unknown): unknown {
-  if (isValid(a) && isValid(b)) {
-    // Fast path for numbers
-    return a + b;
-  }
-
   // Check if left operand has operator overloading
   if (hasOperator(a, Symbol.operatorPlus)) {
     return a[Symbol.operatorPlus](a, b);

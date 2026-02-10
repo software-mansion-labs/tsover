@@ -37,7 +37,7 @@ export function generateUniqueIdentifier(sourceFile: ts.SourceFile, baseName: st
 /**
  * Check if an import for the given module already exists
  */
-export function hasImport(
+export function hasNamespaceImport(
   sourceFile: ts.SourceFile,
   moduleName: string,
 ): ts.ImportDeclaration | undefined {
@@ -45,7 +45,8 @@ export function hasImport(
     if (
       ts.isImportDeclaration(statement) &&
       ts.isStringLiteral(statement.moduleSpecifier) &&
-      statement.moduleSpecifier.text === moduleName
+      statement.moduleSpecifier.text === moduleName &&
+      statement.importClause?.namedBindings?.kind === ts.SyntaxKind.NamespaceImport
     ) {
       return statement;
     }

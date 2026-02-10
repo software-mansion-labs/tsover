@@ -66,12 +66,13 @@ export function shouldTransformBinaryExpression(
   node: ts.BinaryExpression,
   checker: ts.TypeChecker,
 ): boolean {
-  if (node.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
-    return false;
-  }
+  return true;
+  // if (node.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+  //   return false;
+  // }
 
-  const leftType = checker.getTypeAtLocation(node.left);
-  const rightType = checker.getTypeAtLocation(node.right);
+  // const leftType = checker.getTypeAtLocation(node.left);
+  // const rightType = checker.getTypeAtLocation(node.right);
 
-  return hasOperatorPlus(leftType, checker) || hasOperatorPlus(rightType, checker);
+  // return hasOperatorPlus(leftType, checker) || hasOperatorPlus(rightType, checker);
 }

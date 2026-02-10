@@ -1,0 +1,43 @@
+{
+  "name": "tsover-runtime",
+  "version": "0.0.1",
+  "description": "Minimal runtime library for overloading operators in tsover",
+  "keywords": [
+    "operator-overloading",
+    "typescript"
+  ],
+  "license": "MIT",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": {
+      "import": "./package.json"
+    }
+  },
+  "scripts": {
+    "bench-fn-overhead": "pnpm run build && bun scripts/bench-fn-overhead.ts",
+    "build": "tsdown",
+    "prepublishOnly": "pnpm run build"
+  },
+  "dependencies": {
+    "minimatch": "^9.0.0",
+    "unplugin": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tinybench": "^6.0.0",
+    "tsdown": "^0.20.3",
+    "tsover-runtime": "workspace:*",
+    "typescript": "^5.0.0"
+  }
+}

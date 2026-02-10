@@ -4,7 +4,7 @@
 
 import ts from "./tsover.js";
 import { shouldTransformBinaryExpression } from "./type-detection.js";
-import { generateUniqueIdentifier, hasImport, getImportIdentifier } from "./utils.js";
+import { generateUniqueIdentifier, hasNamespaceImport, getImportIdentifier } from "./utils.js";
 
 export interface TransformResult {
   code: string;
@@ -21,14 +21,14 @@ export interface TransformOptions {
  * Transform a source file to replace + operators with tsover.add() calls
  */
 export function transformSourceFile(options: TransformOptions): TransformResult {
-  const { checker, sourceFile, moduleName = "tsover" } = options;
+  const { checker, sourceFile, moduleName = "tsover-runtime" } = options;
 
   // Track if we need to add an import
   let needsImport = false;
   let importIdentifier: string | undefined = undefined;
 
   // Check for existing import
-  const existingImport = hasImport(sourceFile, moduleName);
+  const existingImport = hasNamespaceImport(sourceFile, moduleName);
   if (existingImport) {
     importIdentifier = getImportIdentifier(existingImport);
   }

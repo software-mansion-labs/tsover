@@ -8,41 +8,49 @@ A fork of TypeScript that adds only one functionality to the type checker... ope
 npm install tsover
 ```
 
-## Runtime Usage
+### Setup in VSCode/Cursor
 
-```typescript
-import { add, Operator } from "tsover/runtime";
-
-class Vector {
-  constructor(
-    public x: number,
-    public y: number,
-  ) {}
-
-  [Operator.plus](other: Vector): Vector {
-    return new Vector(this.x + other.x, this.y + other.y);
-  }
+```jsonc
+// .vscode/settings.json
+{
+  "typescript.tsdk": "node_modules/tsover/lib",
 }
-
-const a = new Vector(1, 2);
-const b = new Vector(3, 4);
-const c = add(a, b); // Uses Vector's Operator.plus method
 ```
 
-## Vite Plugin
+### Setup in Zed
 
-The plugin automatically transforms `a + b` to `tsover.plus(a, b)` when either operand has the `Symbol.operatorPlus` property.
+Configure vtsls settings in your Zed settings file:
 
-### Setup
+```jsonc
+// .zed/settings.json
+{
+  "lsp": {
+    "vtsls": {
+      "settings": {
+        "typescript": {
+          "tsdk": "node_modules/tsover/lib",
+        },
+      },
+    },
+  },
+  // ...
+}
+```
+
+### Bundler Plugin
+
+The plugin automatically transforms `a + b` to `tsover.add(a, b)` (and so on) when either operand has overloaded operators.
+
+#### Setup (Vite)
 
 ```typescript
 // vite.config.ts
 import { defineConfig } from "vite";
-import { tsoverPlugin } from "tsover/plugin";
+import tsover from "tsover/plugin/vite";
 
 export default defineConfig({
   plugins: [
-    tsoverPlugin({
+    tsover({
       tsconfigPath: "./tsconfig.json", // optional
       moduleName: "tsover", // optional
       include: ["**/*.ts"], // optional
@@ -52,7 +60,7 @@ export default defineConfig({
 });
 ```
 
-### Example
+#### Example
 
 Input:
 
@@ -83,39 +91,32 @@ class Vector {
   }
 }
 
-const result = tso.plus(new Vector(1, 2), new Vector(3, 4));
+const result = tso.add(new Vector(1, 2), new Vector(3, 4));
 ```
 
-## API
+## Defining operator overloads
 
-### `plus<T>(a: T, b: T): T`
+The [`tsover-runtime`](../tsover-runtime/README.md) package provides the necessary runtime support for operator overloading,
+[see docs for more details](../tsover-runtime/README.md).
 
-Performs the `+` operation with support for operator overloading. If either operand has `Symbol.operatorPlus`, uses that operator. Otherwise falls back to standard JavaScript `+` behavior.
+```typescript
+import { add, Operator } from "tsover-runtime";
 
-### `tsoverPlugin(options?: TsoverPluginOptions): Plugin`
+class Vector {
+  constructor(
+    public x: number,
+    public y: number,
+  ) {}
 
-Vite plugin that transforms TypeScript code.
+  [Operator.plus](other: Vector): Vector {
+    return new Vector(this.x + other.x, this.y + other.y);
+  }
+}
 
-#### Options
-
-- `tsconfigPath?: string` - Path to tsconfig.json. If not provided, searches for it in the project root.
-- `moduleName?: string` - Module name to import the runtime from. Defaults to `'tsover/runtime'`.
-- `include?: string | string[]` - Include patterns for files to transform. Defaults to all TypeScript files.
-- `exclude?: string | string[]` - Exclude patterns for files to skip. Defaults to `node_modules/**`.
-
-## How It Works
-
-1. **Type Checking**: The plugin uses the TypeScript compiler API to analyze your code and detect which types have the `Symbol.operatorPlus` property.
-
-2. **Transformation**: When the plugin finds a `+` operation where either operand has `Symbol.operatorPlus`, it:
-   - Adds an import statement for the runtime if not already present
-   - Replaces `a + b` with `tsover.plus(a, b)`
-
-3. **Caching**: The TypeScript program is cached for the duration of the process for performance.
-
-## Type Checking
-
-If type checking fails, the plugin will throw a descriptive error showing the file path and line number of the error.
+const a = new Vector(1, 2);
+const b = new Vector(3, 4);
+const c = add(a, b); // Uses Vector's Operator.plus method
+```
 
 ## License
 

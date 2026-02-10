@@ -34,7 +34,7 @@ export interface TsOverPluginOptions {
 export const unpluginFactory: UnpluginFactory<TsOverPluginOptions | undefined> = (options = {}) => {
   const {
     tsconfigPath,
-    moduleName = "tsover/runtime",
+    moduleName = "tsover-runtime",
     include,
     exclude = "node_modules/**",
   } = options;

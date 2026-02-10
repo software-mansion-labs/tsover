@@ -1,19 +1,15 @@
 import { defineConfig } from "tsdown";
 
 export default defineConfig({
-  format: ["cjs", "esm"],
-  entry: [
-    "src/runtime/index.ts",
-    "src/plugin/index.ts",
-    "src/plugin/vite.ts",
-    "src/plugin/webpack.ts",
-    "src/plugin/rollup.ts",
-    "src/plugin/esbuild.ts",
-    "src/plugin/rspack.ts",
-  ],
-  platform: "neutral",
-  external: ["../../lib/typescript.js"],
-  alias: {
-    typescript: "../../lib/typescript.js",
+  format: ["cjs"],
+  entry: {
+    plugin: "src/plugin/index.ts",
+    "plugin/vite": "src/plugin/vite.ts",
+    "plugin/webpack": "src/plugin/webpack.ts",
+    "plugin/rollup": "src/plugin/rollup.ts",
+    "plugin/esbuild": "src/plugin/esbuild.ts",
+    "plugin/rspack": "src/plugin/rspack.ts",
   },
+  platform: "node",
+  external: ["tsover"],
 });

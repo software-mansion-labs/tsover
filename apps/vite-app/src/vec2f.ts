@@ -1,4 +1,4 @@
-import { Operator } from "tsover/runtime";
+import { Operator } from "tsover-runtime";
 
 export class Vec2f {
   x: number;

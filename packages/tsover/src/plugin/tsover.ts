@@ -1,1 +1,1 @@
-export { default } from "../../lib/typescript.js";
+export { default } from "tsover";

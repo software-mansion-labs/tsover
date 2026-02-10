@@ -25,46 +25,41 @@
     "!**/.gitattributes"
   ],
   "type": "commonjs",
-  "main": "lib/typescript.js",
-  "types": "lib/typescript.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./lib/index.d.ts",
-      "default": "./lib/index.js"
-    },
-    "./runtime": {
-      "types": "./dist/runtime/index.d.mts",
-      "require": "./dist/runtime/index.js",
-      "import": "./dist/runtime/index.mjs"
+      "types": "./lib/typescript.d.ts",
+      "default": "./lib/typescript.js"
     },
     "./plugin": {
-      "types": "./dist/plugin/index.d.ts",
-      "default": "./dist/plugin/index.js"
-    },
-    "./plugin/vite": {
-      "types": "./dist/plugin/vite.d.ts",
-      "default": "./dist/plugin/vite.js"
-    },
-    "./plugin/webpack": {
-      "types": "./dist/plugin/webpack.d.ts",
-      "default": "./dist/plugin/webpack.js"
-    },
-    "./plugin/rollup": {
-      "types": "./dist/plugin/rollup.d.ts",
-      "default": "./dist/plugin/rollup.js"
+      "types": "./dist/plugin.d.ts",
+      "default": "./dist/plugin.cjs"
     },
     "./plugin/esbuild": {
       "types": "./dist/plugin/esbuild.d.ts",
-      "default": "./dist/plugin/esbuild.js"
+      "default": "./dist/plugin/esbuild.cjs"
+    },
+    "./plugin/rollup": {
+      "types": "./dist/plugin/rollup.d.ts",
+      "default": "./dist/plugin/rollup.cjs"
     },
     "./plugin/rspack": {
       "types": "./dist/plugin/rspack.d.ts",
-      "default": "./dist/plugin/rspack.js"
-    }
+      "default": "./dist/plugin/rspack.cjs"
+    },
+    "./plugin/vite": {
+      "types": "./dist/plugin/vite.d.ts",
+      "default": "./dist/plugin/vite.cjs"
+    },
+    "./plugin/webpack": {
+      "types": "./dist/plugin/webpack.d.ts",
+      "default": "./dist/plugin/webpack.cjs"
+    },
+    "./package.json": "./package.json"
   },
   "scripts": {
     "patch": "bun scripts/patch.ts v5.9.3 && cp -R typescript/bin ./ && cp -R typescript/built/local ./lib && cp typescript/LICENSE.txt ./lib && cp typescript/LICENSE.txt ./bin",
-    "bench-fn-overhead": "pnpm run build && bun scripts/bench-fn-overhead.ts",
     "build": "tsdown",
     "prepublishOnly": "pnpm run build"
   },
@@ -74,9 +69,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "tinybench": "^6.0.0",
     "tsdown": "^0.20.3",
-    "tsover": "workspace:*",
     "typescript": "^5.0.0"
   }
 }
