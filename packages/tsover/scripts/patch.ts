@@ -43,23 +43,44 @@ if (!tag) {
 }
 
 const typescriptTargetDir = resolve(import.meta.dir, "..", "typescript");
+const versionFilePath = resolve(typescriptTargetDir, ".tsover-version");
 
 console.log(`Patching TypeScript ${tag} ...`);
 
-// Remove existing directory if it exists
-if (existsSync(typescriptTargetDir)) {
-  console.log(`Removing existing directory: ${typescriptTargetDir}`);
-  await rm(typescriptTargetDir, { recursive: true, force: true });
+// Check if we already have the correct version
+let shouldClone = true;
+if (existsSync(typescriptTargetDir) && existsSync(versionFilePath)) {
+  const currentVersion = await readFile(versionFilePath, "utf-8");
+  if (currentVersion.trim() === tag) {
+    console.log(`TypeScript ${tag} already downloaded. Resetting and reapplying patches...`);
+    shouldClone = false;
+  }
 }
 
-// Create versions directory if it doesn't exist
-await mkdir(typescriptTargetDir, { recursive: true });
+if (shouldClone) {
+  // Remove existing directory if it exists
+  if (existsSync(typescriptTargetDir)) {
+    console.log(`Removing existing directory: ${typescriptTargetDir}`);
+    await rm(typescriptTargetDir, { recursive: true, force: true });
+  }
 
-// Clone the TypeScript repository (shallow clone, single branch, single commit)
-console.log(`Cloning microsoft/TypeScript@${tag} ...`);
-await $`git clone --depth 1 --branch ${tag} --single-branch https://github.com/microsoft/TypeScript.git ${typescriptTargetDir}`;
+  // Create directory
+  await mkdir(typescriptTargetDir, { recursive: true });
 
-// Change to the tag directory
+  // Clone the TypeScript repository (shallow clone, single branch, single commit)
+  console.log(`Cloning microsoft/TypeScript@${tag} ...`);
+  await $`git clone --depth 1 --branch ${tag} --single-branch https://github.com/microsoft/TypeScript.git ${typescriptTargetDir}`;
+
+  // Write version file
+  await writeFile(versionFilePath, tag);
+} else {
+  // Reset local unstaged changes
+  process.chdir(typescriptTargetDir);
+  await $`git checkout -- .`;
+  await $`git clean -fd`;
+}
+
+// Store original directory and ensure we're in the target directory
 const originalCwd = process.cwd();
 process.chdir(typescriptTargetDir);
 
