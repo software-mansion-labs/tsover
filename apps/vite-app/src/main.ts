@@ -10,6 +10,16 @@ const b = new Vec2f(3, 4);
 const c = a + b;
 console.log(c);
 
+interface _f32 {
+  valueOf(): number;
+  [Symbol.operatorPlus](a: f32, b: f32): f32;
+}
+type f32 = number & _f32;
+
+declare const A: f32;
+declare const B: f32;
+const C = A + B;
+
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div>
     <a href="https://vite.dev" target="_blank">

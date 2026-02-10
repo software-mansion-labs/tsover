@@ -8,12 +8,27 @@
 // depend on it) benefit from this duplication.
 declare global {
   interface SymbolConstructor {
+    readonly deferOperation: unique symbol;
+
+    // binary operations
     readonly operatorPlus: unique symbol;
+    readonly operatorMinus: unique symbol;
     readonly operatorStar: unique symbol;
     readonly operatorSlash: unique symbol;
     readonly operatorEqEq: unique symbol;
 
-    readonly deferOperation: unique symbol;
+    // assignment operations
+    readonly operatorPlusEq: unique symbol;
+    readonly operatorMinusEq: unique symbol;
+    readonly operatorStarEq: unique symbol;
+    readonly operatorSlashEq: unique symbol;
+
+    // unary operations
+    readonly operatorPrePlusPlus: unique symbol;
+    readonly operatorPreMinusMinus: unique symbol;
+    readonly operatorPostPlusPlus: unique symbol;
+    readonly operatorPostMinusMinus: unique symbol;
+    readonly operatorPreMinus: unique symbol;
   }
 }
 
@@ -29,19 +44,46 @@ function polyfillSymbol(name: string): void {
   }
 }
 
-polyfillSymbol("operatorPlus");
-polyfillSymbol("operatorStar");
-polyfillSymbol("operatorSlash");
-polyfillSymbol("operatorEqEq");
-polyfillSymbol("deferOperation");
+export const Operator = /* @__PURE__ */ (() => {
+  polyfillSymbol("deferOperation");
 
-export const Operator = {
-  plus: Symbol.operatorPlus,
-  star: Symbol.operatorStar,
-  slash: Symbol.operatorSlash,
-  eqEq: Symbol.operatorEqEq,
-  deferOperation: Symbol.deferOperation,
-} as const;
+  polyfillSymbol("operatorPlus");
+  polyfillSymbol("operatorMinus");
+  polyfillSymbol("operatorStar");
+  polyfillSymbol("operatorSlash");
+  polyfillSymbol("operatorEqEq");
+
+  polyfillSymbol("operatorPlusEq");
+  polyfillSymbol("operatorMinusEq");
+  polyfillSymbol("operatorStarEq");
+  polyfillSymbol("operatorSlashEq");
+
+  polyfillSymbol("operatorPrePlusPlus");
+  polyfillSymbol("operatorPreMinusMinus");
+  polyfillSymbol("operatorPostPlusPlus");
+  polyfillSymbol("operatorPostMinusMinus");
+  polyfillSymbol("operatorPreMinus");
+
+  return {
+    deferOperation: Symbol.deferOperation,
+    plus: Symbol.operatorPlus,
+    minus: Symbol.operatorMinus,
+    star: Symbol.operatorStar,
+    slash: Symbol.operatorSlash,
+    eqEq: Symbol.operatorEqEq,
+
+    plusEq: Symbol.operatorPlusEq,
+    minusEq: Symbol.operatorMinusEq,
+    starEq: Symbol.operatorStarEq,
+    slashEq: Symbol.operatorSlashEq,
+
+    prePlusPlus: Symbol.operatorPrePlusPlus,
+    preMinusMinus: Symbol.operatorPreMinusMinus,
+    postPlusPlus: Symbol.operatorPostPlusPlus,
+    postMinusMinus: Symbol.operatorPostMinusMinus,
+    preMinus: Symbol.operatorPreMinus,
+  } as const;
+})();
 
 type WithBinOp<T extends symbol> = {
   [Key in T]: (a: unknown, b: unknown) => unknown;
@@ -54,9 +96,32 @@ function hasOperator<T extends symbol>(value: unknown, operator: T): value is Wi
   return typeof (value as Record<symbol, unknown>)?.[operator] === "function";
 }
 
-function isValid(value: unknown): value is number {
-  return typeof value !== "object" && typeof value !== "function";
+function binOp<T extends symbol>(
+  a: unknown,
+  b: unknown,
+  opSymbol: T,
+  fallback: (a: never, b: never) => unknown,
+): unknown {
+  let result: unknown = Operator.deferOperation;
+  // Check if left operand has operator overloading
+  if (hasOperator(a, opSymbol)) {
+    result = a[opSymbol](a, b);
+  }
+
+  // Check if right operand has operator overloading
+  if (result === Operator.deferOperation && hasOperator(b, opSymbol)) {
+    result = b[opSymbol](a, b);
+  }
+
+  if (result === Operator.deferOperation) {
+    // Fall back to standard JavaScript + operator
+    return fallback(a as never, b as never);
+  }
+
+  return result;
 }
+
+const normalAdd = (a: number, b: number) => a + b;
 
 /**
  * Performs the + operation with support for operator overloading
@@ -64,16 +129,38 @@ function isValid(value: unknown): value is number {
  * Otherwise falls back to standard JavaScript + behavior
  */
 export function add(a: unknown, b: unknown): unknown {
-  // Check if left operand has operator overloading
-  if (hasOperator(a, Symbol.operatorPlus)) {
-    return a[Symbol.operatorPlus](a, b);
-  }
+  return binOp(a, b, Operator.plus, normalAdd);
+}
 
-  // Check if right operand has operator overloading
-  if (hasOperator(b, Symbol.operatorPlus)) {
-    return b[Symbol.operatorPlus](a, b);
-  }
+const normalSub = (a: number, b: number) => a - b;
 
-  // Fall back to standard JavaScript + operator
-  return (a as string) + (b as string);
+/**
+ * Performs the - operation with support for operator overloading
+ * If either operand has Symbol.operatorMinus, uses that operator
+ * Otherwise falls back to standard JavaScript - behavior
+ */
+export function sub(a: unknown, b: unknown): unknown {
+  return binOp(a, b, Operator.minus, normalSub);
+}
+
+const normalMul = (a: number, b: number) => a * b;
+
+/**
+ * Performs the * operation with support for operator overloading
+ * If either operand has Symbol.operatorStar, uses that operator
+ * Otherwise falls back to standard JavaScript * behavior
+ */
+export function mul(a: unknown, b: unknown): unknown {
+  return binOp(a, b, Operator.star, normalMul);
+}
+
+const normalDiv = (a: number, b: number) => a / b;
+
+/**
+ * Performs the / operation with support for operator overloading
+ * If either operand has Symbol.operatorSlash, uses that operator
+ * Otherwise falls back to standard JavaScript / behavior
+ */
+export function div(a: unknown, b: unknown): unknown {
+  return binOp(a, b, Operator.slash, normalDiv);
 }

@@ -25,7 +25,8 @@
     }
   },
   "scripts": {
-    "bench-fn-overhead": "pnpm run build && bun scripts/bench-fn-overhead.ts",
+    "bench-fn-overhead:bun": "pnpm run build && bun scripts/bench-fn-overhead.ts",
+    "bench-fn-overhead:node": "pnpm run build && node scripts/bench-fn-overhead.ts",
     "build": "tsdown",
     "prepublishOnly": "pnpm run build"
   },
