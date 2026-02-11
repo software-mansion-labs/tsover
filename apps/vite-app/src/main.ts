@@ -11,13 +11,15 @@ const c = a + b;
 console.log(c);
 
 interface _f32 {
+  [Symbol.operatorPlus](lhs: f32, rhs: f32): f32;
   valueOf(): number;
-  [Symbol.operatorPlus](a: f32, b: f32): f32;
 }
-type f32 = number & _f32;
 
-declare const A: f32;
-declare const B: f32;
+export type f32 = number & _f32;
+export declare const f32: (v: number) => f32;
+
+const A = f32(1);
+const B = f32(2);
 const C = A + B;
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `

@@ -59,7 +59,7 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "patch": "bun scripts/patch.ts v5.9.3 && cp -R typescript/bin ./ && cp -R typescript/built/local ./lib && cp typescript/LICENSE.txt ./lib && cp typescript/LICENSE.txt ./bin",
+    "patch": "bun scripts/patch.ts v5.9.3 && rm -rf ./bin && rm -rf ./lib && cp -R typescript/bin ./ && cp -R typescript/built/local ./lib && cp typescript/LICENSE.txt ./lib && cp typescript/LICENSE.txt ./bin",
     "build": "tsdown",
     "prepublishOnly": "pnpm run build"
   },
@@ -69,6 +69,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "comment-json": "^4.5.1",
     "tsdown": "^0.20.3",
     "typescript": "^5.0.0"
   }
