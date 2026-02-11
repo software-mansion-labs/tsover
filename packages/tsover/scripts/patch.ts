@@ -62,7 +62,16 @@ if (existsSync(versionFilePath)) {
   }
 }
 
-function inject(source: string, preludePattern: RegExp, toInject: string): string {
+function injectBefore(source: string, toInject: string, postludePattern: RegExp): string {
+  const result = postludePattern.exec(source);
+  if (!result || result.length < 1) {
+    throw new Error("Could not find pattern to inject after");
+  }
+
+  return source.slice(0, result.index) + toInject + source.slice(result.index);
+}
+
+function injectAfter(source: string, preludePattern: RegExp, toInject: string): string {
   const result = preludePattern.exec(source);
   if (!result || result.length < 1) {
     throw new Error("Could not find pattern to inject after");
@@ -109,12 +118,39 @@ try {
   // Apply patches
   console.log("Applying tsover patches...");
 
+  // Patch types.ts
+  const typesPath = resolve(typescriptTargetDir, "src", "compiler", "types.ts");
+  let typesContent = await readFile(typesPath, "utf-8");
+
+  try {
+    typesContent = injectAfter(
+      typesContent,
+      /export interface NodeLinks \{[\S\s]*nonExistentPropCheckCache\?: Set<string>;/,
+      `useTsoverScope?: boolean;            // True if node is within a 'use tsover' directive scope`,
+    );
+    await writeFile(typesPath, typesContent);
+
+    console.log("  ✓ Patched types.ts");
+  } catch (error) {
+    console.error("  ✗ Could not find pattern in types.ts");
+    console.error(error);
+  }
+
   // Patch checker.ts - add operatorPlus support
   const checkerPath = resolve(typescriptTargetDir, "src", "compiler", "checker.ts");
   let checkerContent = await readFile(checkerPath, "utf-8");
 
   try {
-    checkerContent = inject(
+    if (!checkerContent.includes("isPrologueDirective")) {
+      // Only import isPrologueDirective if it's not already imported
+      checkerContent = injectBefore(
+        checkerContent,
+        `isPrologueDirective,`,
+        /} from "\.\/_namespaces\/ts\.js";/,
+      );
+    }
+
+    checkerContent = injectAfter(
       checkerContent,
       /export function createTypeChecker\(host: TypeCheckerHost\): TypeChecker \{/,
       `
@@ -134,14 +170,56 @@ try {
         const ctorType = getGlobalESSymbolConstructorSymbol(/*reportErrors*/ false);
         return ctorType && getTypeOfPropertyOfType(getTypeOfSymbol(ctorType), 'deferOperation' as __String);
     }
+
+    function __tsover__findUseTsoverPrologue(statements: readonly Statement[]): Statement | undefined {
+        for (const statement of statements) {
+            if (isPrologueDirective(statement)) {
+                if (isStringLiteral(statement.expression) && statement.expression.text === "use tsover") {
+                    return statement;
+                }
+            }
+            else {
+                break;
+            }
+        }
+        return undefined;
+    }
+
+    function __tsover__isInUseTsoverScope(node: Node): boolean {
+        const links = getNodeLinks(node);
+        if (links.useTsoverScope !== undefined) {
+            return links.useTsoverScope;
+        }
+        return links.useTsoverScope = __tsover__computeIsInUseTsoverScope(node);
+    }
+
+    function __tsover__computeIsInUseTsoverScope(node: Node): boolean {
+        // Check source file level first
+        const sourceFile = getSourceFileOfNode(node);
+        if (__tsover__findUseTsoverPrologue(sourceFile.statements)) {
+            return true;
+        }
+
+        // Walk up through containing functions (transitive lexical scope)
+        let current: Node | undefined = node;
+        while (current) {
+            if (isFunctionLikeDeclaration(current) && current.body && isBlock(current.body)) {
+                if (__tsover__findUseTsoverPrologue(current.body.statements)) {
+                    return true;
+                }
+            }
+            current = current.parent;
+        }
+        return false;
+    }
   `,
     );
 
-    checkerContent = inject(
+    checkerContent = injectAfter(
       checkerContent,
       /case SyntaxKind\.PlusEqualsToken:[\S\s]*let resultType: Type \| undefined;/,
       `
-      {
+      if (__tsover__isInUseTsoverScope(left)) {
           const deferOperationType = __tsover__getDeferOperationSymbolType();
           const lhsOverload = getPropertyOfType(leftType, getPropertyNameForKnownSymbolName("operatorPlus"));
           const rhsOverload = getPropertyOfType(rightType, getPropertyNameForKnownSymbolName("operatorPlus"));
