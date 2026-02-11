@@ -221,19 +221,26 @@ try {
       `
       if (__tsover__isInUseTsoverScope(left)) {
           const deferOperationType = __tsover__getDeferOperationSymbolType();
-          const lhsOverload = getPropertyOfType(leftType, getPropertyNameForKnownSymbolName("operatorPlus"));
-          const rhsOverload = getPropertyOfType(rightType, getPropertyNameForKnownSymbolName("operatorPlus"));
-          const lhsOverloadType = lhsOverload && getTypeOfSymbol(lhsOverload);
-          const rhsOverloadType = rhsOverload && getTypeOfSymbol(rhsOverload);
-          const lhsSignatures = lhsOverloadType ? getSignaturesOfType(lhsOverloadType, SignatureKind.Call) : [];
+          const operatorPlus = getPropertyNameForKnownSymbolName("operatorPlus");
+          const operatorPlusEq = getPropertyNameForKnownSymbolName("operatorPlusEq");
+          let lhsOverload: Type | undefined;
+          let rhsOverload: Type | undefined;
+          if (operator === SyntaxKind.PlusEqualsToken) {
+            lhsOverload = getTypeOfPropertyOfType(leftType, operatorPlusEq) ?? getTypeOfPropertyOfType(leftType, operatorPlus);
+            rhsOverload = getTypeOfPropertyOfType(rightType, operatorPlusEq) ?? getTypeOfPropertyOfType(rightType, operatorPlus);
+          } else {
+            lhsOverload = getTypeOfPropertyOfType(leftType, operatorPlus);
+            rhsOverload = getTypeOfPropertyOfType(rightType, operatorPlus);
+          }
+          const lhsSignatures = lhsOverload ? getSignaturesOfType(lhsOverload, SignatureKind.Call) : [];
           resultType = __tsover__findBinarySignature(lhsSignatures, leftType, rightType);
 
           if (lhsSignatures.length === 0 || (resultType && deferOperationType && isTypeIdenticalTo(resultType, deferOperationType))) {
               // Try rhs overloads if lhs has no overloads or if result has deferOperation symbol
-              const rhsSignatures = rhsOverloadType ? getSignaturesOfType(rhsOverloadType, SignatureKind.Call) : [];
+              const rhsSignatures = rhsOverload ? getSignaturesOfType(rhsOverload, SignatureKind.Call) : [];
               resultType = __tsover__findBinarySignature(rhsSignatures, leftType, rightType);
           }
-          if ((resultType && deferOperationType && isTypeIdenticalTo(resultType, deferOperationType))) {
+          if (resultType && deferOperationType && isTypeIdenticalTo(resultType, deferOperationType)) {
               resultType = undefined;
           }
       }
@@ -285,9 +292,29 @@ try {
 
   // Create tsover.d.ts
   const tsoverDtsPath = resolve(typescriptTargetDir, "src", "lib", "tsover.d.ts");
-  const tsoverDtsContent = `interface SymbolConstructor {\
+  const tsoverDtsContent = `\
+interface SymbolConstructor {
     readonly deferOperation: unique symbol;
+
+    // binary operations
     readonly operatorPlus: unique symbol;
+    readonly operatorMinus: unique symbol;
+    readonly operatorStar: unique symbol;
+    readonly operatorSlash: unique symbol;
+    readonly operatorEqEq: unique symbol;
+
+    // assignment operations
+    readonly operatorPlusEq: unique symbol;
+    readonly operatorMinusEq: unique symbol;
+    readonly operatorStarEq: unique symbol;
+    readonly operatorSlashEq: unique symbol;
+
+    // unary operations
+    readonly operatorPrePlusPlus: unique symbol;
+    readonly operatorPreMinusMinus: unique symbol;
+    readonly operatorPostPlusPlus: unique symbol;
+    readonly operatorPostMinusMinus: unique symbol;
+    readonly operatorPreMinus: unique symbol;
 }
 `;
   await writeFile(tsoverDtsPath, tsoverDtsContent);
