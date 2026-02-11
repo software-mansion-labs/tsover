@@ -154,6 +154,13 @@ try {
       checkerContent,
       /export function createTypeChecker\(host: TypeCheckerHost\): TypeChecker \{/,
       `
+    const __tsover__overloaded = {
+        [SyntaxKind.PlusToken]: ['operatorPlus'],
+        [SyntaxKind.PlusEqualsToken]: ['operatorPlusEq', 'operatorPlus'],
+        [SyntaxKind.AsteriskToken]: ['operatorStar'],
+        [SyntaxKind.AsteriskEqualsToken]: ['operatorStarEq', 'operatorStar'],
+    };
+
     function __tsover__findBinarySignature(signatures: readonly Signature[], lhs: Type, rhs: Type): Type | undefined {
         // Find a signature where the first parameter accepts lhs and second accepts rhs
         for (const signature of signatures) {
@@ -217,23 +224,15 @@ try {
 
     checkerContent = injectAfter(
       checkerContent,
-      /case SyntaxKind\.PlusEqualsToken:[\S\s]*let resultType: Type \| undefined;/,
+      /function checkBinaryLikeExpressionWorker\([\S\s]*const operator = operatorToken\.kind;/,
       `
-      if (__tsover__isInUseTsoverScope(left)) {
+      if (__tsover__isInUseTsoverScope(left) && __tsover__overloaded[operator as keyof typeof __tsover__overloaded]) {
           const deferOperationType = __tsover__getDeferOperationSymbolType();
-          const operatorPlus = getPropertyNameForKnownSymbolName("operatorPlus");
-          const operatorPlusEq = getPropertyNameForKnownSymbolName("operatorPlusEq");
-          let lhsOverload: Type | undefined;
-          let rhsOverload: Type | undefined;
-          if (operator === SyntaxKind.PlusEqualsToken) {
-            lhsOverload = getTypeOfPropertyOfType(leftType, operatorPlusEq) ?? getTypeOfPropertyOfType(leftType, operatorPlus);
-            rhsOverload = getTypeOfPropertyOfType(rightType, operatorPlusEq) ?? getTypeOfPropertyOfType(rightType, operatorPlus);
-          } else {
-            lhsOverload = getTypeOfPropertyOfType(leftType, operatorPlus);
-            rhsOverload = getTypeOfPropertyOfType(rightType, operatorPlus);
-          }
+          const symbols = __tsover__overloaded[operator as keyof typeof __tsover__overloaded].map(getPropertyNameForKnownSymbolName);
+          const lhsOverload = symbols.reduce<Type | undefined>((acc, symbol) => acc ?? getTypeOfPropertyOfType(leftType, symbol), undefined);
+          const rhsOverload = symbols.reduce<Type | undefined>((acc, symbol) => acc ?? getTypeOfPropertyOfType(rightType, symbol), undefined);
           const lhsSignatures = lhsOverload ? getSignaturesOfType(lhsOverload, SignatureKind.Call) : [];
-          resultType = __tsover__findBinarySignature(lhsSignatures, leftType, rightType);
+          let resultType = __tsover__findBinarySignature(lhsSignatures, leftType, rightType);
 
           if (lhsSignatures.length === 0 || (resultType && deferOperationType && isTypeIdenticalTo(resultType, deferOperationType))) {
               // Try rhs overloads if lhs has no overloads or if result has deferOperation symbol
@@ -243,10 +242,10 @@ try {
           if (resultType && deferOperationType && isTypeIdenticalTo(resultType, deferOperationType)) {
               resultType = undefined;
           }
+          if (resultType) {
+              return resultType;
+          }
       }
-      if (resultType) {
-          // No-op
-      } else
       `,
     );
 

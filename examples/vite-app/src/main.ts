@@ -9,6 +9,8 @@ import { Vec2f } from "./vec2f.ts";
 const a = new Vec2f(1, 2);
 const b = new Vec2f(3, 4);
 const c = a + b;
+const d = a * 2;
+const e = 2 * a;
 console.log(c);
 
 interface _f32 {
