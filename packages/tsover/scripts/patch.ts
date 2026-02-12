@@ -122,18 +122,20 @@ try {
   const typesPath = resolve(typescriptTargetDir, "src", "compiler", "types.ts");
   let typesContent = await readFile(typesPath, "utf-8");
 
+  const patchErrors: unknown[] = [];
+
   try {
     typesContent = injectAfter(
       typesContent,
       /export interface NodeLinks \{[\S\s]*nonExistentPropCheckCache\?: Set<string>;/,
-      `useTsoverScope?: boolean;            // True if node is within a 'use tsover' directive scope`,
+      `\nuseTsoverScope?: boolean;            // True if node is within a 'use tsover' directive scope`,
     );
     await writeFile(typesPath, typesContent);
 
     console.log("  ✓ Patched types.ts");
   } catch (error) {
-    console.error("  ✗ Could not find pattern in types.ts");
-    console.error(error);
+    patchErrors.push("  ✗ Could not find pattern in types.ts");
+    patchErrors.push(error);
   }
 
   // Patch checker.ts - add operatorPlus support
@@ -248,13 +250,23 @@ try {
       }
       `,
     );
+    // The code below can be re-added if underlining is considered useful
+    // if (resultType) {
+    //   errorOrSuggestion(
+    //     /*isError*/ false,
+    //     operatorToken,
+    //     Diagnostics.Operator_0_is_overloaded,
+    //     tokenToString(operator),
+    //   );
+    //   return resultType;
+    // }
 
     await writeFile(checkerPath, checkerContent);
 
     console.log("  ✓ Patched checker.ts");
   } catch (error) {
-    console.error("  ✗ Could not find pattern in checker.ts");
-    console.error(error);
+    patchErrors.push("  ✗ Could not find pattern in checker.ts");
+    patchErrors.push(error);
   }
 
   // Patch commandLineParser.ts - add tsover lib entry
@@ -271,7 +283,7 @@ try {
     await writeFile(cmdParserPath, cmdParserContent);
     console.log("  ✓ Patched commandLineParser.ts");
   } else {
-    console.error("  ✗ Could not find pattern in commandLineParser.ts");
+    patchErrors.push("  ✗ Could not find pattern in commandLineParser.ts");
   }
 
   // Patch libs.json - add tsover to end of libs array
@@ -285,8 +297,39 @@ try {
     await writeFile(libsJsonPath, jsonc.stringify(libsJsonContent, undefined, 4));
     console.log("  ✓ Patched libs.json");
   } catch (error) {
-    console.error("  ✗ Could not find libs array end in libs.json");
-    console.error(error);
+    patchErrors.push("  ✗ Could not find libs array end in libs.json");
+    patchErrors.push(error);
+  }
+
+  // Patch diagnosticMessages.json
+  try {
+    const diagnosticsJsonPath = resolve(
+      typescriptTargetDir,
+      "src",
+      "compiler",
+      "diagnosticMessages.json",
+    );
+    const diagnosticsJsonContent = jsonc.parse(
+      await readFile(diagnosticsJsonPath, "utf-8"),
+    ) as jsonc.CommentObject;
+
+    const diagnosticCodes = (Object.values(diagnosticsJsonContent) as jsonc.CommentObject[])
+      .filter((d) => d.category === "Message")
+      .map((d) => d.code as number)
+      .sort((a, b) => a - b);
+    // Choosing the last diagnostic code and incrementing it by 1
+    const code = diagnosticCodes[diagnosticCodes.length - 1] + 1;
+    jsonc.assign(diagnosticsJsonContent, {
+      "Operator '{0}' is overloaded.": {
+        category: "Message",
+        code,
+      },
+    });
+    await writeFile(diagnosticsJsonPath, jsonc.stringify(diagnosticsJsonContent, undefined, 4));
+    console.log("  ✓ Patched diagnosticMessages.json");
+  } catch (error) {
+    patchErrors.push("  ✗ Could not patch diagnosticMessages.json");
+    patchErrors.push(error);
   }
 
   // Create tsover.d.ts
@@ -329,6 +372,13 @@ interface SymbolConstructor {
   console.log("\nChanges applied:");
   console.log("================");
   await $`git diff -w`.cwd(typescriptTargetDir);
+
+  // Show errors
+  if (patchErrors.length > 0) {
+    console.error("\nErrors:");
+    console.error("========");
+    console.error(patchErrors.join("\n"));
+  }
 } finally {
   // Restore original working directory
   process.chdir(originalCwd);
