@@ -11,7 +11,7 @@ npm install tsover-runtime
 ## Usage
 
 ```typescript
-import { add, Operator } from "tsover/runtime";
+import { add, Operator } from "tsover-runtime";
 
 class Vector {
   constructor(
@@ -29,7 +29,7 @@ const b = new Vector(3, 4);
 const c = add(a, b); // Uses Vector's Operator.plus method
 ```
 
-The `tsover` package provides the alternate TypeScript server, as well as a bundler plugin to transform JS operations into `tsover/runtime` function calls.
+The [`tsover`](../tsover) package is the one that provides an alternate TypeScript server, as well as a bundler plugin to transform JS operations into `tsover-runtime` function calls.
 
 ## License
 
