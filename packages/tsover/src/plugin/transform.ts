@@ -2,7 +2,7 @@
  * AST transformation logic
  */
 
-import ts from "./tsover.js";
+import ts from "tsover";
 import { shouldTransformBinaryExpression } from "./type-detection.js";
 import {
   generateUniqueIdentifier,

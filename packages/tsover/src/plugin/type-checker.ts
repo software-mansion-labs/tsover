@@ -2,7 +2,7 @@
  * TypeScript program manager with caching
  */
 
-import ts from "./tsover.js";
+import ts from "tsover";
 import * as path from "path";
 
 const cachedProgram: ts.Program | null = null;

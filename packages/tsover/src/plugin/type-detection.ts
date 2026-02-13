@@ -2,7 +2,7 @@
  * Type checking utilities
  */
 
-import type ts from "./tsover";
+import type ts from "tsover";
 
 /**
  * Check if either operand of a binary expression has operator overloading
@@ -11,6 +11,10 @@ export function shouldTransformBinaryExpression(
   node: ts.BinaryExpression,
   checker: ts.TypeChecker,
 ): boolean {
+  if (!checker.__tsover__isInUseTsoverScope(node)) {
+    return false;
+  }
+
   const overloadedType = checker.__tsover__getOverloadReturnType(
     node.left,
     node.operatorToken.kind,

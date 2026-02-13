@@ -196,10 +196,11 @@ try {
         return ctorType && getTypeOfPropertyOfType(getTypeOfSymbol(ctorType), 'deferOperation' as __String);
     }
 
+    const __tsover__directives = ['use tsover', 'use gpu'];
     function __tsover__findUseTsoverPrologue(statements: readonly Statement[]): Statement | undefined {
         for (const statement of statements) {
             if (isPrologueDirective(statement)) {
-                if (isStringLiteral(statement.expression) && statement.expression.text === "use tsover") {
+                if (isStringLiteral(statement.expression) && __tsover__directives.includes(statement.expression.text)) {
                     return statement;
                 }
             }
