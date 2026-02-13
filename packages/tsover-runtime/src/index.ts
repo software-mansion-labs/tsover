@@ -57,11 +57,6 @@ export const Operator = /* @__PURE__ */ (() => {
   polyfillSymbol("operatorSlash");
   polyfillSymbol("operatorEqEq");
 
-  polyfillSymbol("operatorPlusEq");
-  polyfillSymbol("operatorMinusEq");
-  polyfillSymbol("operatorStarEq");
-  polyfillSymbol("operatorSlashEq");
-
   polyfillSymbol("operatorPrePlusPlus");
   polyfillSymbol("operatorPreMinusMinus");
   polyfillSymbol("operatorPostPlusPlus");
@@ -75,11 +70,6 @@ export const Operator = /* @__PURE__ */ (() => {
     star: Symbol.operatorStar,
     slash: Symbol.operatorSlash,
     eqEq: Symbol.operatorEqEq,
-
-    plusEq: Symbol.operatorPlusEq,
-    minusEq: Symbol.operatorMinusEq,
-    starEq: Symbol.operatorStarEq,
-    slashEq: Symbol.operatorSlashEq,
 
     prePlusPlus: Symbol.operatorPrePlusPlus,
     preMinusMinus: Symbol.operatorPreMinusMinus,

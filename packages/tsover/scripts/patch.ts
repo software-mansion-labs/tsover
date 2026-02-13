@@ -128,7 +128,10 @@ try {
     typesContent = injectAfter(
       typesContent,
       /export interface NodeLinks \{[\S\s]*nonExistentPropCheckCache\?: Set<string>;/,
-      `\nuseTsoverScope?: boolean;            // True if node is within a 'use tsover' directive scope`,
+      `
+      useTsoverScope?: boolean;    // True if node is within a 'use tsover' directive scope,
+      useGpuScope?: boolean;       // True if node is within a 'use gpu' directive scope
+      `,
     );
 
     typesContent = injectAfter(
@@ -136,6 +139,7 @@ try {
       /export interface TypeChecker \{/,
       `
       __tsover__isInUseTsoverScope(node: Node): boolean;
+      __tsover__isInUseGpuScope(node: Node): boolean;
       __tsover__getOverloadReturnType(
         left: Expression,
         operator: BinaryOperator,
@@ -196,11 +200,10 @@ try {
         return ctorType && getTypeOfPropertyOfType(getTypeOfSymbol(ctorType), 'deferOperation' as __String);
     }
 
-    const __tsover__directives = ['use tsover', 'use gpu'];
-    function __tsover__findUseTsoverPrologue(statements: readonly Statement[]): Statement | undefined {
+    function __tsover__findDirective(statements: readonly Statement[], directive: string): Statement | undefined {
         for (const statement of statements) {
             if (isPrologueDirective(statement)) {
-                if (isStringLiteral(statement.expression) && __tsover__directives.includes(statement.expression.text)) {
+                if (isStringLiteral(statement.expression) && statement.expression.text === directive) {
                     return statement;
                 }
             }
@@ -216,13 +219,21 @@ try {
         if (links.useTsoverScope !== undefined) {
             return links.useTsoverScope;
         }
-        return links.useTsoverScope = __tsover__computeIsInUseTsoverScope(node);
+        return links.useTsoverScope = __tsover__computeIsInDirectiveScope(node, 'use tsover');
     }
 
-    function __tsover__computeIsInUseTsoverScope(node: Node): boolean {
+    function __tsover__isInUseGpuScope(node: Node): boolean {
+        const links = getNodeLinks(node);
+        if (links.useGpuScope !== undefined) {
+            return links.useGpuScope;
+        }
+        return links.useGpuScope = __tsover__computeIsInDirectiveScope(node, 'use gpu');
+    }
+
+    function __tsover__computeIsInDirectiveScope(node: Node, directive: string): boolean {
         // Check source file level first
         const sourceFile = getSourceFileOfNode(node);
-        if (__tsover__findUseTsoverPrologue(sourceFile.statements)) {
+        if (__tsover__findDirective(sourceFile.statements, directive)) {
             return true;
         }
 
@@ -230,7 +241,7 @@ try {
         let current: Node | undefined = node;
         while (current) {
             if (isFunctionLikeDeclaration(current) && current.body && isBlock(current.body)) {
-                if (__tsover__findUseTsoverPrologue(current.body.statements)) {
+                if (__tsover__findDirective(current.body.statements, directive)) {
                     return true;
                 }
             }
@@ -246,7 +257,7 @@ try {
       leftType: Type,
       rightType: Type
     ): Type | undefined {
-        if (!__tsover__isInUseTsoverScope(left) || !__tsover__overloaded[operator as keyof typeof __tsover__overloaded]) {
+        if (!(__tsover__isInUseTsoverScope(left) || __tsover__isInUseGpuScope(left)) || !__tsover__overloaded[operator as keyof typeof __tsover__overloaded]) {
             return undefined;
         }
 
@@ -277,6 +288,7 @@ try {
       /const checker: TypeChecker = {/,
       `
       __tsover__isInUseTsoverScope,
+      __tsover__isInUseGpuScope,
       __tsover__getOverloadReturnType,
       `,
     );
@@ -398,13 +410,6 @@ interface SymbolConstructor {
 `;
   await writeFile(tsoverDtsPath, tsoverDtsContent);
   console.log("  ✓ Created tsover.d.ts");
-
-  // Add `tsover.d.ts` to be a default when using `esnext.d.ts`
-  const esnextDtsPath = resolve(typescriptTargetDir, "src", "lib", "esnext.d.ts");
-  await writeFile(
-    esnextDtsPath,
-    (await readFile(esnextDtsPath, "utf-8")) + '/// <reference path="tsover.d.ts" />\n',
-  );
 
   // Rebuild after patching
   console.log("Rebuilding TypeScript with patches...");
