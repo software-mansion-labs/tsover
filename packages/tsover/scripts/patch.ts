@@ -398,6 +398,13 @@ interface SymbolConstructor {
   await writeFile(tsoverDtsPath, tsoverDtsContent);
   console.log("  ✓ Created tsover.d.ts");
 
+  // Add `tsover.d.ts` to be a default when using `esnext.d.ts`
+  const esnextDtsPath = resolve(typescriptTargetDir, "src", "lib", "esnext.d.ts");
+  await writeFile(
+    esnextDtsPath,
+    (await readFile(esnextDtsPath, "utf-8")) + '/// <reference path="tsover.d.ts" />\n',
+  );
+
   // Rebuild after patching
   console.log("Rebuilding TypeScript with patches...");
   await $`npx --yes hereby@latest`;
