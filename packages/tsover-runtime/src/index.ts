@@ -48,37 +48,6 @@ function polyfillSymbol(name: string): void {
   }
 }
 
-export const Operator = /* @__PURE__ */ (() => {
-  polyfillSymbol("deferOperation");
-
-  polyfillSymbol("operatorPlus");
-  polyfillSymbol("operatorMinus");
-  polyfillSymbol("operatorStar");
-  polyfillSymbol("operatorSlash");
-  polyfillSymbol("operatorEqEq");
-
-  polyfillSymbol("operatorPrePlusPlus");
-  polyfillSymbol("operatorPreMinusMinus");
-  polyfillSymbol("operatorPostPlusPlus");
-  polyfillSymbol("operatorPostMinusMinus");
-  polyfillSymbol("operatorPreMinus");
-
-  return {
-    deferOperation: Symbol.deferOperation,
-    plus: Symbol.operatorPlus,
-    minus: Symbol.operatorMinus,
-    star: Symbol.operatorStar,
-    slash: Symbol.operatorSlash,
-    eqEq: Symbol.operatorEqEq,
-
-    prePlusPlus: Symbol.operatorPrePlusPlus,
-    preMinusMinus: Symbol.operatorPreMinusMinus,
-    postPlusPlus: Symbol.operatorPostPlusPlus,
-    postMinusMinus: Symbol.operatorPostMinusMinus,
-    preMinus: Symbol.operatorPreMinus,
-  } as const;
-})();
-
 type WithBinOp<T extends symbol> = {
   [Key in T]: (a: unknown, b: unknown) => unknown;
 };
@@ -158,3 +127,39 @@ const normalDiv = (a: number, b: number) => a / b;
 export function div(a: unknown, b: unknown): unknown {
   return binOp(a, b, Operator.slash, normalDiv);
 }
+
+export const Operator = /* @__PURE__ */ (() => {
+  polyfillSymbol("deferOperation");
+
+  polyfillSymbol("operatorPlus");
+  polyfillSymbol("operatorMinus");
+  polyfillSymbol("operatorStar");
+  polyfillSymbol("operatorSlash");
+  polyfillSymbol("operatorEqEq");
+
+  polyfillSymbol("operatorPrePlusPlus");
+  polyfillSymbol("operatorPreMinusMinus");
+  polyfillSymbol("operatorPostPlusPlus");
+  polyfillSymbol("operatorPostMinusMinus");
+  polyfillSymbol("operatorPreMinus");
+
+  (globalThis as any).__tsover_add = add;
+  (globalThis as any).__tsover_sub = sub;
+  (globalThis as any).__tsover_mul = mul;
+  (globalThis as any).__tsover_div = div;
+
+  return {
+    deferOperation: Symbol.deferOperation,
+    plus: Symbol.operatorPlus,
+    minus: Symbol.operatorMinus,
+    star: Symbol.operatorStar,
+    slash: Symbol.operatorSlash,
+    eqEq: Symbol.operatorEqEq,
+
+    prePlusPlus: Symbol.operatorPrePlusPlus,
+    preMinusMinus: Symbol.operatorPreMinusMinus,
+    postPlusPlus: Symbol.operatorPostPlusPlus,
+    postMinusMinus: Symbol.operatorPostMinusMinus,
+    preMinus: Symbol.operatorPreMinus,
+  } as const;
+})();
