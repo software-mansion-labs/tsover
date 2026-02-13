@@ -18,7 +18,7 @@ importers:
         specifier: ^1.43.0
         version: 1.43.0
 
-  apps/vite-app:
+  examples/vite-app:
     dependencies:
       tsover-runtime:
         specifier: workspace:*

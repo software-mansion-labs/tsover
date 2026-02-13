@@ -17,12 +17,6 @@ declare global {
     readonly operatorSlash: unique symbol;
     readonly operatorEqEq: unique symbol;
 
-    // assignment operations
-    readonly operatorPlusEq: unique symbol;
-    readonly operatorMinusEq: unique symbol;
-    readonly operatorStarEq: unique symbol;
-    readonly operatorSlashEq: unique symbol;
-
     // unary operations
     readonly operatorPrePlusPlus: unique symbol;
     readonly operatorPreMinusMinus: unique symbol;
@@ -31,6 +25,16 @@ declare global {
     readonly operatorPreMinus: unique symbol;
   }
 }
+
+/**
+ * `true` if the user uses the `tsover` Language Server, `false` if the user is using the
+ * standard TypeScript Language Server.
+ */
+export type TsoverEnabled = typeof globalThis extends {
+  __tsover__enabled: true;
+}
+  ? true
+  : false;
 
 function polyfillSymbol(name: string): void {
   // Polyfill the symbol if it doesn't exist

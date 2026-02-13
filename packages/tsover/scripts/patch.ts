@@ -130,6 +130,22 @@ try {
       /export interface NodeLinks \{[\S\s]*nonExistentPropCheckCache\?: Set<string>;/,
       `\nuseTsoverScope?: boolean;            // True if node is within a 'use tsover' directive scope`,
     );
+
+    typesContent = injectAfter(
+      typesContent,
+      /export interface TypeChecker \{/,
+      `
+      __tsover__isInUseTsoverScope(node: Node): boolean;
+      __tsover__getOverloadReturnType(
+        left: Expression,
+        operator: BinaryOperator,
+        right: Expression,
+        leftType: Type,
+        rightType: Type,
+      ): Type | undefined;
+      `,
+    );
+
     await writeFile(typesPath, typesContent);
 
     console.log("  ✓ Patched types.ts");
@@ -221,44 +237,68 @@ try {
         }
         return false;
     }
+
+    function __tsover__getOverloadReturnType(
+      left: Expression,
+      operator: BinaryOperator,
+      right: Expression,
+      leftType: Type,
+      rightType: Type
+    ): Type | undefined {
+        if (!__tsover__isInUseTsoverScope(left) || !__tsover__overloaded[operator as keyof typeof __tsover__overloaded]) {
+            return undefined;
+        }
+
+        const deferOperationType = __tsover__getDeferOperationSymbolType();
+        const symbols = __tsover__overloaded[operator as keyof typeof __tsover__overloaded].map(getPropertyNameForKnownSymbolName);
+        const lhsOverload = symbols.reduce<Type | undefined>((acc, symbol) => acc ?? getTypeOfPropertyOfType(leftType, symbol), undefined);
+        const rhsOverload = symbols.reduce<Type | undefined>((acc, symbol) => acc ?? getTypeOfPropertyOfType(rightType, symbol), undefined);
+        const lhsSignatures = lhsOverload ? getSignaturesOfType(lhsOverload, SignatureKind.Call) : [];
+        let resultType = __tsover__findBinarySignature(lhsSignatures, leftType, rightType);
+
+        if (lhsSignatures.length === 0 || (resultType && deferOperationType && isTypeIdenticalTo(resultType, deferOperationType))) {
+            // Try rhs overloads if lhs has no overloads or if result has deferOperation symbol
+            const rhsSignatures = rhsOverload ? getSignaturesOfType(rhsOverload, SignatureKind.Call) : [];
+            resultType = __tsover__findBinarySignature(rhsSignatures, leftType, rightType);
+        }
+        if (resultType && deferOperationType && isTypeIdenticalTo(resultType, deferOperationType)) {
+            return undefined;
+        }
+
+        return resultType;
+    }
   `,
+    );
+
+    // Making some functions public for use outside of the type checker (by the plugin)
+    checkerContent = injectAfter(
+      checkerContent,
+      /const checker: TypeChecker = {/,
+      `
+      __tsover__isInUseTsoverScope,
+      __tsover__getOverloadReturnType,
+      `,
     );
 
     checkerContent = injectAfter(
       checkerContent,
       /function checkBinaryLikeExpressionWorker\([\S\s]*const operator = operatorToken\.kind;/,
       `
-      if (__tsover__isInUseTsoverScope(left) && __tsover__overloaded[operator as keyof typeof __tsover__overloaded]) {
-          const deferOperationType = __tsover__getDeferOperationSymbolType();
-          const symbols = __tsover__overloaded[operator as keyof typeof __tsover__overloaded].map(getPropertyNameForKnownSymbolName);
-          const lhsOverload = symbols.reduce<Type | undefined>((acc, symbol) => acc ?? getTypeOfPropertyOfType(leftType, symbol), undefined);
-          const rhsOverload = symbols.reduce<Type | undefined>((acc, symbol) => acc ?? getTypeOfPropertyOfType(rightType, symbol), undefined);
-          const lhsSignatures = lhsOverload ? getSignaturesOfType(lhsOverload, SignatureKind.Call) : [];
-          let resultType = __tsover__findBinarySignature(lhsSignatures, leftType, rightType);
-
-          if (lhsSignatures.length === 0 || (resultType && deferOperationType && isTypeIdenticalTo(resultType, deferOperationType))) {
-              // Try rhs overloads if lhs has no overloads or if result has deferOperation symbol
-              const rhsSignatures = rhsOverload ? getSignaturesOfType(rhsOverload, SignatureKind.Call) : [];
-              resultType = __tsover__findBinarySignature(rhsSignatures, leftType, rightType);
-          }
-          if (resultType && deferOperationType && isTypeIdenticalTo(resultType, deferOperationType)) {
-              resultType = undefined;
-          }
-          if (resultType) {
-              return resultType;
-          }
+      const overloadedType = __tsover__getOverloadReturnType(left, operator, right, leftType, rightType);
+      if (overloadedType) {
+          return overloadedType;
       }
       `,
     );
     // The code below can be re-added if underlining is considered useful
-    // if (resultType) {
+    // if (overloadedType) {
     //   errorOrSuggestion(
     //     /*isError*/ false,
     //     operatorToken,
     //     Diagnostics.Operator_0_is_overloaded,
     //     tokenToString(operator),
     //   );
-    //   return resultType;
+    //   return overloadedType;
     // }
 
     await writeFile(checkerPath, checkerContent);
@@ -335,6 +375,8 @@ try {
   // Create tsover.d.ts
   const tsoverDtsPath = resolve(typescriptTargetDir, "src", "lib", "tsover.d.ts");
   const tsoverDtsContent = `\
+declare var __tsover__enabled: true;
+
 interface SymbolConstructor {
     readonly deferOperation: unique symbol;
 
@@ -344,12 +386,6 @@ interface SymbolConstructor {
     readonly operatorStar: unique symbol;
     readonly operatorSlash: unique symbol;
     readonly operatorEqEq: unique symbol;
-
-    // assignment operations
-    readonly operatorPlusEq: unique symbol;
-    readonly operatorMinusEq: unique symbol;
-    readonly operatorStarEq: unique symbol;
-    readonly operatorSlashEq: unique symbol;
 
     // unary operations
     readonly operatorPrePlusPlus: unique symbol;

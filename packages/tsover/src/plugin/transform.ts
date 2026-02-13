@@ -4,7 +4,13 @@
 
 import ts from "./tsover.js";
 import { shouldTransformBinaryExpression } from "./type-detection.js";
-import { generateUniqueIdentifier, hasNamespaceImport, getImportIdentifier } from "./utils.js";
+import {
+  generateUniqueIdentifier,
+  hasNamespaceImport,
+  getImportIdentifier,
+  opToRuntimeFn,
+  assignmentOps,
+} from "./utils.js";
 
 export interface TransformResult {
   code: string;
@@ -25,7 +31,7 @@ export function transformSourceFile(options: TransformOptions): TransformResult 
 
   // Track if we need to add an import
   let needsImport = false;
-  let importIdentifier: string | undefined = undefined;
+  let importIdentifier: string | undefined;
 
   // Check for existing import
   const existingImport = hasNamespaceImport(sourceFile, moduleName);
@@ -37,10 +43,12 @@ export function transformSourceFile(options: TransformOptions): TransformResult 
   const transformer: ts.TransformerFactory<ts.SourceFile> = (context) => {
     return (sourceFile) => {
       function visit(node: ts.Node): ts.Node {
-        // Check if this is a binary expression with + operator
-        if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        // Check if this is a binary expression
+        if (ts.isBinaryExpression(node)) {
+          const runtimeFn = opToRuntimeFn[node.operatorToken.kind as keyof typeof opToRuntimeFn];
+
           // Check if either operand has operator overloading
-          if (shouldTransformBinaryExpression(node, checker)) {
+          if (shouldTransformBinaryExpression(node, checker) && runtimeFn) {
             needsImport = true;
 
             // Generate unique identifier if we haven't already
@@ -48,18 +56,23 @@ export function transformSourceFile(options: TransformOptions): TransformResult 
               importIdentifier = generateUniqueIdentifier(sourceFile, "tso");
             }
 
-            // Replace a + b with tsover.add(a, b)
-            return ts.factory.createCallExpression(
+            const left = ts.visitNode(node.left, visit) as ts.Expression;
+            const right = ts.visitNode(node.right, visit) as ts.Expression;
+            const callExpression = ts.factory.createCallExpression(
               ts.factory.createPropertyAccessExpression(
-                ts.factory.createIdentifier(importIdentifier!),
-                "add",
+                ts.factory.createIdentifier(importIdentifier),
+                runtimeFn,
               ),
               undefined, // type arguments
-              [
-                ts.visitNode(node.left, visit) as ts.Expression,
-                ts.visitNode(node.right, visit) as ts.Expression,
-              ],
+              [left, right],
             );
+            if (assignmentOps.includes(node.operatorToken.kind)) {
+              // Replace a += b with a = tso.add(a, b), and so on
+              return ts.factory.createAssignment(left, callExpression);
+            } else {
+              // Replace a + b with tso.add(a, b), and so on
+              return callExpression;
+            }
           }
         }
 

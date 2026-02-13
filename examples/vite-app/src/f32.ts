@@ -13,9 +13,10 @@ const a = f32(1);
 const b = f32(2);
 
 const c = a + b;
+console.log(c);
 
 function hello(a: f32, b: f32): f32 {
-  const hello = f32(1) + f32(5);
+  const hello = a + b;
   return f32(hello);
 }
 

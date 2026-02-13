@@ -6,25 +6,13 @@ import { setupCounter } from "./counter.ts";
 
 import { Vec2f } from "./vec2f.ts";
 
-const a = new Vec2f(1, 2);
+let a = new Vec2f(1, 2);
 const b = new Vec2f(3, 4);
+a += b;
 const c = a + b;
 const d = a * 2;
 const e = 2 * a;
 console.log(c, d, e);
-
-interface _f32 {
-  [Symbol.operatorPlus](lhs: f32, rhs: f32): f32;
-  valueOf(): number;
-}
-
-export type f32 = number & _f32;
-export declare const f32: (v: number) => f32;
-
-const A = f32(1);
-const B = f32(2);
-const C = A + B;
-console.log(C);
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div>
