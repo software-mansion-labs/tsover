@@ -179,8 +179,12 @@ try {
     const __tsover__overloaded = {
         [SyntaxKind.PlusToken]: ['operatorPlus'],
         [SyntaxKind.PlusEqualsToken]: ['operatorPlusEq', 'operatorPlus'],
+        [SyntaxKind.MinusToken]: ['operatorMinus'],
+        [SyntaxKind.MinusEqualsToken]: ['operatorMinusEq', 'operatorMinus'],
         [SyntaxKind.AsteriskToken]: ['operatorStar'],
         [SyntaxKind.AsteriskEqualsToken]: ['operatorStarEq', 'operatorStar'],
+        [SyntaxKind.SlashToken]: ['operatorSlash'],
+        [SyntaxKind.SlashEqualsToken]: ['operatorSlashEq', 'operatorSlash'],
     };
 
     function __tsover__findBinarySignature(signatures: readonly Signature[], lhs: Type, rhs: Type): Type | undefined {
