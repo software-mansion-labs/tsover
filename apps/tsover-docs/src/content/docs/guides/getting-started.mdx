@@ -1,0 +1,18 @@
+---
+title: Getting Started
+description: A quick guide on how to setup tsover
+---
+
+import { Code } from '@astrojs/starlight/components';
+import tsoverPackageJson from 'tsover/package.json';
+
+## Install
+
+<Code lang="diff" meta="lang=json" code={`\
+{
+    "devDependencies": {
+-    "typescript": "^5.9.3"
++    "typescript": "npm:tsover@~${tsoverPackageJson.version}"
+    }
+}
+`} />
