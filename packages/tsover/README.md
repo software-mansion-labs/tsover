@@ -5,7 +5,7 @@ A fork of TypeScript that adds only one functionality to the type checker... ope
 ## Installation
 
 ```bash
-npm install tsover
+npm install tsover tsover-runtime
 ```
 
 ### Setup in VSCode/Cursor
@@ -39,7 +39,7 @@ Configure vtsls settings in your Zed settings file:
 
 ### Bundler Plugin
 
-The plugin automatically transforms `a + b` to `tsover.add(a, b)` (and so on) when either operand has overloaded operators.
+The plugin automatically transforms `a + b` to `__tsover_add(a, b)` (and so on) when either operand has overloaded operators.
 
 #### Setup (Vite)
 
@@ -65,11 +65,14 @@ export default defineConfig({
 Input:
 
 ```typescript
+'use tsover';
+import { Operator } from 'tsover-runtime';
+
 class Vector {
   x: number;
   y: number;
 
-  [Symbol.operatorPlus](other: Vector): Vector {
+  [Operator.plus](other: Vector): Vector {
     return new Vector(this.x + other.x, this.y + other.y);
   }
 }
@@ -80,18 +83,19 @@ const result = new Vector(1, 2) + new Vector(3, 4);
 Output:
 
 ```typescript
-import * as tso from "tsover";
+'use tsover';
+import { Operator } from 'tsover-runtime';
 
 class Vector {
   x: number;
   y: number;
 
-  [Symbol.operatorPlus](other: Vector): Vector {
+  [Operator.plus](other: Vector): Vector {
     return new Vector(this.x + other.x, this.y + other.y);
   }
 }
 
-const result = tso.add(new Vector(1, 2), new Vector(3, 4));
+const result = __tsover_add(new Vector(1, 2), new Vector(3, 4));
 ```
 
 ## Defining operator overloads
@@ -116,6 +120,21 @@ class Vector {
 const a = new Vector(1, 2);
 const b = new Vector(3, 4);
 const c = add(a, b); // Uses Vector's Operator.plus method
+```
+
+## Progressive enhancement
+
+Branded numeric types can now propagate through numeric operations:
+
+```ts
+type f32 = number & {
+  __brand: "f32", [Operator.plus](lhs: f32, rhs: f32): f32
+};
+
+const a = 12 as f32;
+const b = 34 as f32;
+const c = a + b;
+//    ^? f32
 ```
 
 ## License
