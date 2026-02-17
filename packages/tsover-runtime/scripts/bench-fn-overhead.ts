@@ -1,5 +1,5 @@
-import { Bench } from "tinybench";
-import { Operator, add } from "tsover-runtime";
+import { Bench } from 'tinybench';
+import { Operator, add } from 'tsover-runtime';
 
 export class Vec2f {
   x: number;
@@ -23,9 +23,9 @@ export class Vec2f {
   }
 }
 
-const bench = new Bench({ name: "simple benchmark", time: 100 });
+const bench = new Bench({ name: 'simple benchmark', time: 100 });
 
-const s = (a: unknown) => typeof a === "number" || typeof a === "string";
+const s = (a: unknown) => typeof a === 'number' || typeof a === 'string';
 // prettier-ignore
 const A0 = (a:unknown,b:unknown)=>((typeof a==="number"||typeof a==="string")&&(typeof b==="number"||typeof b==="string")?a+b:add(a,b));
 // prettier-ignore

@@ -38,9 +38,12 @@ class Vec2f {
   [Operator.plus](lhs: Vec2f, rhs: Vec2f): Vec2f {
     return new Vec2f(lhs.x + rhs.x, lhs.y + rhs.y);
   }
-  
+
   [Operator.star](lhs: Vec2f | number, rhs: Vec2f | number): Vec2f;
-  [Operator.star](lhs: Vec2f | number, rhs: Vec2f | number): Vec2f | typeof Operator.deferOperation {
+  [Operator.star](
+    lhs: Vec2f | number,
+    rhs: Vec2f | number,
+  ): Vec2f | typeof Operator.deferOperation {
     if (typeof lhs === 'number' && rhs instanceof Vec2f) {
       return new Vec2f(lhs * rhs.x, lhs * rhs.y);
     }
@@ -58,7 +61,7 @@ class Vec2f {
 function compute() {
   'use tsover';
   const a = new Vec2f(1, 2);
-  
+
   const b = a * 2;
   //    ^?
   const c = 4 * a;

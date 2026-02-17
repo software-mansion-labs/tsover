@@ -38,7 +38,7 @@ export type TsoverEnabled = typeof globalThis extends {
 
 function polyfillSymbol(name: string): void {
   // Polyfill the symbol if it doesn't exist
-  if (typeof (Symbol as any)[name] === "undefined") {
+  if (typeof (Symbol as any)[name] === 'undefined') {
     Object.defineProperty(Symbol, name, {
       value: Symbol.for(`Symbol.${name}`),
       writable: false,
@@ -56,7 +56,7 @@ type WithBinOp<T extends symbol> = {
  * Checks if a value has the Symbol.operatorPlus property
  */
 function hasOperator<T extends symbol>(value: unknown, operator: T): value is WithBinOp<T> {
-  return typeof (value as Record<symbol, unknown>)?.[operator] === "function";
+  return typeof (value as Record<symbol, unknown>)?.[operator] === 'function';
 }
 
 function binOp<T extends symbol>(
@@ -93,7 +93,10 @@ const normalAdd = (a: number, b: number) => a + b;
  */
 function add(a: unknown, b: unknown): unknown {
   // Fast paths for numerics or strings
-  if ((typeof a === "number" || typeof a === "string") && (typeof b === "number" || typeof b === "string")) {
+  if (
+    (typeof a === 'number' || typeof a === 'string') &&
+    (typeof b === 'number' || typeof b === 'string')
+  ) {
     // The types here don't matter, we let JS handle it as it would
     return (a as number) + (b as number);
   }
@@ -110,7 +113,7 @@ const normalSub = (a: number, b: number) => a - b;
  */
 function sub(a: unknown, b: unknown): unknown {
   // Fast paths for numerics
-  if (typeof a === "number" && typeof b === "number") {
+  if (typeof a === 'number' && typeof b === 'number') {
     return a - b;
   }
 
@@ -126,7 +129,7 @@ const normalMul = (a: number, b: number) => a * b;
  */
 function mul(a: unknown, b: unknown): unknown {
   // Fast paths for numerics
-  if (typeof a === "number" && typeof b === "number") {
+  if (typeof a === 'number' && typeof b === 'number') {
     return a * b;
   }
 
@@ -142,7 +145,7 @@ const normalDiv = (a: number, b: number) => a / b;
  */
 function div(a: unknown, b: unknown): unknown {
   // Fast paths for numerics
-  if (typeof a === "number" && typeof b === "number") {
+  if (typeof a === 'number' && typeof b === 'number') {
     return a / b;
   }
 
@@ -150,19 +153,19 @@ function div(a: unknown, b: unknown): unknown {
 }
 
 export const Operator = /* @__PURE__ */ (() => {
-  polyfillSymbol("deferOperation");
+  polyfillSymbol('deferOperation');
 
-  polyfillSymbol("operatorPlus");
-  polyfillSymbol("operatorMinus");
-  polyfillSymbol("operatorStar");
-  polyfillSymbol("operatorSlash");
-  polyfillSymbol("operatorEqEq");
+  polyfillSymbol('operatorPlus');
+  polyfillSymbol('operatorMinus');
+  polyfillSymbol('operatorStar');
+  polyfillSymbol('operatorSlash');
+  polyfillSymbol('operatorEqEq');
 
-  polyfillSymbol("operatorPrePlusPlus");
-  polyfillSymbol("operatorPreMinusMinus");
-  polyfillSymbol("operatorPostPlusPlus");
-  polyfillSymbol("operatorPostMinusMinus");
-  polyfillSymbol("operatorPreMinus");
+  polyfillSymbol('operatorPrePlusPlus');
+  polyfillSymbol('operatorPreMinusMinus');
+  polyfillSymbol('operatorPostPlusPlus');
+  polyfillSymbol('operatorPostMinusMinus');
+  polyfillSymbol('operatorPreMinus');
 
   (globalThis as any).__tsover_add = add;
   (globalThis as any).__tsover_sub = sub;

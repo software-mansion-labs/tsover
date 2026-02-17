@@ -2,8 +2,8 @@
  * TypeScript program manager with caching
  */
 
-import ts from "tsover";
-import * as path from "path";
+import ts from 'tsover';
+import * as path from 'path';
 
 const cachedProgram: ts.Program | null = null;
 const cachedConfigPath: string | null = null;
@@ -30,12 +30,12 @@ export class ProgramManager {
       return path.resolve(tsconfigPath);
     }
 
-    const configPath = ts.findConfigFile(process.cwd(), ts.sys.fileExists, "tsconfig.json");
+    const configPath = ts.findConfigFile(process.cwd(), ts.sys.fileExists, 'tsconfig.json');
 
     if (!configPath) {
       throw new Error(
-        "Could not find tsconfig.json. Please ensure you have a tsconfig.json in your project root " +
-          "or specify a custom path via the tsconfigPath option.",
+        'Could not find tsconfig.json. Please ensure you have a tsconfig.json in your project root ' +
+          'or specify a custom path via the tsconfigPath option.',
       );
     }
 
@@ -46,7 +46,7 @@ export class ProgramManager {
     const configFile = ts.readConfigFile(this.configPath, ts.sys.readFile);
 
     if (configFile.error) {
-      const message = ts.flattenDiagnosticMessageText(configFile.error.messageText, "\n");
+      const message = ts.flattenDiagnosticMessageText(configFile.error.messageText, '\n');
       throw new Error(`Failed to read tsconfig.json at ${this.configPath}:\n${message}`);
     }
 
@@ -58,8 +58,8 @@ export class ProgramManager {
 
     if (parsedConfig.errors.length > 0) {
       const errors = parsedConfig.errors
-        .map((d) => ts.flattenDiagnosticMessageText(d.messageText, "\n"))
-        .join("\n");
+        .map((d) => ts.flattenDiagnosticMessageText(d.messageText, '\n'))
+        .join('\n');
       throw new Error(`Failed to parse tsconfig.json at ${this.configPath}:\n${errors}`);
     }
 
@@ -84,7 +84,7 @@ export class ProgramManager {
     if (errors.length > 0) {
       const errorMessages = errors
         .map((diagnostic) => {
-          const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n");
+          const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
           if (diagnostic.file && diagnostic.start !== undefined) {
             const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(
               diagnostic.start,
@@ -93,7 +93,7 @@ export class ProgramManager {
           }
           return `  ${message}`;
         })
-        .join("\n\n");
+        .join('\n\n');
 
       throw new Error(
         `Type checking failed for project at ${this.configPath}:\n\n${errorMessages}`,
@@ -105,7 +105,7 @@ export class ProgramManager {
 
   getProgram(): ts.Program {
     if (!this.program) {
-      throw new Error("Program has been destroyed");
+      throw new Error('Program has been destroyed');
     }
     return this.program;
   }

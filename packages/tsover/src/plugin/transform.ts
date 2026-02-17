@@ -2,15 +2,15 @@
  * AST transformation logic
  */
 
-import ts from "tsover";
-import { shouldTransformBinaryExpression } from "./type-detection.js";
+import ts from 'tsover';
+import { shouldTransformBinaryExpression } from './type-detection.js';
 import {
   generateUniqueIdentifier,
   hasNamespaceImport,
   getImportIdentifier,
   opToRuntimeFn,
   assignmentOps,
-} from "./utils.js";
+} from './utils.js';
 
 export interface TransformResult {
   code: string;
@@ -27,7 +27,7 @@ export interface TransformOptions {
  * Transform a source file to replace + operators with tsover.add() calls
  */
 export function transformSourceFile(options: TransformOptions): TransformResult {
-  const { checker, sourceFile, moduleName = "tsover-runtime" } = options;
+  const { checker, sourceFile, moduleName = 'tsover-runtime' } = options;
 
   // Track if we need to add an import
   let needsImport = false;
@@ -53,7 +53,7 @@ export function transformSourceFile(options: TransformOptions): TransformResult 
 
             // Generate unique identifier if we haven't already
             if (!importIdentifier) {
-              importIdentifier = generateUniqueIdentifier(sourceFile, "tso");
+              importIdentifier = generateUniqueIdentifier(sourceFile, 'tso');
             }
 
             const left = ts.visitNode(node.left, visit) as ts.Expression;

@@ -45,16 +45,16 @@ The plugin automatically transforms `a + b` to `__tsover_add(a, b)` (and so on) 
 
 ```typescript
 // vite.config.ts
-import { defineConfig } from "vite";
-import tsover from "tsover/plugin/vite";
+import { defineConfig } from 'vite';
+import tsover from 'tsover/plugin/vite';
 
 export default defineConfig({
   plugins: [
     tsover({
-      tsconfigPath: "./tsconfig.json", // optional
-      moduleName: "tsover", // optional
-      include: ["**/*.ts"], // optional
-      exclude: ["node_modules/**"], // optional
+      tsconfigPath: './tsconfig.json', // optional
+      moduleName: 'tsover', // optional
+      include: ['**/*.ts'], // optional
+      exclude: ['node_modules/**'], // optional
     }),
   ],
 });
@@ -104,7 +104,7 @@ The [`tsover-runtime`](../tsover-runtime/README.md) package provides the necessa
 [see docs for more details](../tsover-runtime/README.md).
 
 ```typescript
-import { add, Operator } from "tsover-runtime";
+import { add, Operator } from 'tsover-runtime';
 
 class Vector {
   constructor(
@@ -128,7 +128,8 @@ Branded numeric types can now propagate through numeric operations:
 
 ```ts
 type f32 = number & {
-  __brand: "f32", [Operator.plus](lhs: f32, rhs: f32): f32
+  __brand: 'f32';
+  [Operator.plus](lhs: f32, rhs: f32): f32;
 };
 
 const a = 12 as f32;

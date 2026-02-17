@@ -11,7 +11,7 @@ npm install tsover-runtime
 ## Usage
 
 ```typescript
-import { add, Operator } from "tsover-runtime";
+import { add, Operator } from 'tsover-runtime';
 
 class Vector {
   constructor(

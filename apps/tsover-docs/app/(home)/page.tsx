@@ -1,41 +1,27 @@
-import HeroExample from "@/content/home/hero-example.mdx";
-import Link from "next/link";
-import { ArrowRight, Github, Leaf, RefreshCw, Puzzle } from "lucide-react";
+import HeroExample from '@/content/home/hero-example.mdx';
+import Link from 'next/link';
+import { ArrowRight, Github, Leaf, RefreshCw, Puzzle } from 'lucide-react';
 
 interface ButtonProps {
   href: string;
   children: React.ReactNode;
-  variant?: "primary" | "secondary";
+  variant?: 'primary' | 'secondary';
   external?: boolean;
   icon?: React.ReactNode;
 }
 
-function Button({
-  href,
-  children,
-  variant = "primary",
-  external = false,
-  icon,
-}: ButtonProps) {
+function Button({ href, children, variant = 'primary', external = false, icon }: ButtonProps) {
   const baseStyles =
-    "inline-flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-200";
+    'inline-flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-200';
   const variants = {
-    primary:
-      "bg-linear-to-r bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl",
-    secondary:
-      "bg-fd-card border-2 border-fg/20 text-fg hover:border-fg/30 hover:bg-fg/5",
+    primary: 'bg-linear-to-r bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl',
+    secondary: 'bg-fd-card border-2 border-fg/20 text-fg hover:border-fg/30 hover:bg-fg/5',
   };
 
-  const linkProps = external
-    ? { target: "_blank", rel: "noopener noreferrer" }
-    : {};
+  const linkProps = external ? { target: '_blank', rel: 'noopener noreferrer' } : {};
 
   return (
-    <Link
-      href={href}
-      className={`${baseStyles} ${variants[variant]}`}
-      {...linkProps}
-    >
+    <Link href={href} className={`${baseStyles} ${variants[variant]}`} {...linkProps}>
       {children}
       {icon}
     </Link>
@@ -52,9 +38,7 @@ export default function HomePage() {
             <h1 className="text-6xl font-bold mb-2 bg-linear-to-r from-blue-600 to-cyan-600 text-transparent bg-clip-text">
               tsover
             </h1>
-            <p className="text-2xl text-fg/70">
-              TypeScript with Operator Overloading
-            </p>
+            <p className="text-2xl text-fg/70">TypeScript with Operator Overloading</p>
           </div>
           <div className="flex gap-4">
             <Button href="/docs" icon={<ArrowRight className="w-4 h-4" />}>
@@ -87,8 +71,8 @@ export default function HomePage() {
             Sustainable Fork
           </h3>
           <p className="text-fg/70 leading-relaxed">
-            A sustainable fork of TypeScript that requires minimal maintenance
-            thanks to a procedural application of patches.
+            A sustainable fork of TypeScript that requires minimal maintenance thanks to a
+            procedural application of patches.
           </p>
         </div>
         <div className="group p-6 rounded-xl border border-fg/10 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 hover:from-blue-500/10 hover:to-cyan-500/10 hover:border-blue-500/30 transition-all duration-300 hover:-translate-y-1">
@@ -99,8 +83,8 @@ export default function HomePage() {
             Drop-in Replacement
           </h3>
           <p className="text-fg/70 leading-relaxed">
-            The package is fully compatible with TypeScript and can be used as a
-            drop-in replacement.
+            The package is fully compatible with TypeScript and can be used as a drop-in
+            replacement.
           </p>
         </div>
         <div className="group p-6 rounded-xl border border-fg/10 bg-gradient-to-br from-violet-500/5 to-purple-500/5 hover:from-violet-500/10 hover:to-purple-500/10 hover:border-violet-500/30 transition-all duration-300 hover:-translate-y-1">
@@ -111,8 +95,8 @@ export default function HomePage() {
             Progressive Enhancement
           </h3>
           <p className="text-fg/70 leading-relaxed">
-            Libraries can offer operator overloading to their users without
-            requiring them to depend on tsover.
+            Libraries can offer operator overloading to their users without requiring them to depend
+            on tsover.
           </p>
         </div>
       </div>
@@ -120,7 +104,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="mt-8 pt-8 border-t border-fg-muted/20 text-sm text-fg/70 w-full max-w-5xl mx-auto">
         <p>
-          Created by{" "}
+          Created by{' '}
           <a
             href="https://swmansion.com"
             target="_blank"

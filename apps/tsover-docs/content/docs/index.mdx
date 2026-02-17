@@ -27,6 +27,7 @@ export class Vec2f {
 }
 
 // @filename: main.ts
+// prettier-ignore
 // ---cut-before---
 'use tsover'; // a directive that allows use of overloaded operators
 
@@ -117,7 +118,9 @@ There could be other packages that depend on `typescript`, so it's best to overr
 }
 ```
 
-<Callout>In a monorepo setup, overrides/resolutions should be defined in the root `package.json` file.</Callout>
+<Callout>
+  In a monorepo setup, overrides/resolutions should be defined in the root `package.json` file.
+</Callout>
 
 ## tsconfig.json
 
@@ -126,7 +129,7 @@ All additional `tsover` functionality is enabled only when `"tsover"` is include
 ```json title="tsconfig.json"
 {
   "compilerOptions": {
-    "lib": ["tsover", /*...*/]
+    "lib": ["tsover" /*...*/]
   }
 }
 ```
@@ -141,6 +144,7 @@ For VS Code and it's forks, just make sure you're using the **Workspace** versio
 do so by opening up the command palette (`Ctrl+Shift+P`) and searching for `TypeScript: Select TypeScript Version`. Then, select `Use Workspace Version`.
 
 In case that doesn't work, ensure that the `typescript.tsdk` setting is set to the correct path in `.vscode/settings.json`:
+
 ```json
 {
   "typescript.tsdk": "node_modules/typescript/lib"
@@ -182,6 +186,7 @@ A bundler plugin is shipped as part of the `tsover` package, which can be used t
 supports operator overloads.
 
 ### Vite
+
 ```ts
 import { defineConfig } from 'vite';
 import tsover from 'tsover/plugin/vite';
@@ -192,6 +197,7 @@ export default defineConfig({
 ```
 
 ### Rollup
+
 ```ts
 import { defineConfig } from 'rollup';
 import tsover from 'tsover/plugin/rollup';
@@ -217,8 +223,10 @@ export default defineConfig({
 ## What's next?
 
 With this, you can already enjoy overloaded operators provided by tsover-enabled libraries:
+
 - TypeGPU
 
 If you're interested in defining overloaded operators for your own types, follow along to [Defining Overloads](/docs/defining-overloads).
-*/}
+\*/}
+
 </>

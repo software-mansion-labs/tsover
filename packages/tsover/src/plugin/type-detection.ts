@@ -2,7 +2,7 @@
  * Type checking utilities
  */
 
-import type ts from "tsover";
+import type ts from 'tsover';
 
 /**
  * Check if either operand of a binary expression has operator overloading

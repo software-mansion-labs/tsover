@@ -1,7 +1,7 @@
-import { defineConfig } from "tsdown";
+import { defineConfig } from 'tsdown';
 
 export default defineConfig({
-  format: ["esm"],
-  entry: ["src/index.ts"],
-  platform: "neutral",
+  format: ['esm'],
+  entry: ['src/index.ts'],
+  platform: 'neutral',
 });

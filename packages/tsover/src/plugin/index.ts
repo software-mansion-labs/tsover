@@ -2,9 +2,9 @@
  * Unplugin for TypeScript operator overloading
  */
 
-import { createUnplugin, type UnpluginFactory } from "unplugin";
-import { ProgramManager } from "./type-checker.js";
-import { transformSourceFile } from "./transform.js";
+import { createUnplugin, type UnpluginFactory } from 'unplugin';
+import { ProgramManager } from './type-checker.js';
+import { transformSourceFile } from './transform.js';
 
 export interface TsOverPluginOptions {
   /**
@@ -34,9 +34,9 @@ export interface TsOverPluginOptions {
 export const unpluginFactory: UnpluginFactory<TsOverPluginOptions | undefined> = (options = {}) => {
   const {
     tsconfigPath,
-    moduleName = "tsover-runtime",
+    moduleName = 'tsover-runtime',
     include,
-    exclude = "node_modules/**",
+    exclude = 'node_modules/**',
   } = options;
 
   // Initialize the TypeScript program manager (cached indefinitely)
@@ -47,17 +47,17 @@ export const unpluginFactory: UnpluginFactory<TsOverPluginOptions | undefined> =
     ? Array.isArray(include)
       ? include
       : [include]
-    : ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"];
+    : ['**/*.ts', '**/*.tsx', '**/*.mts', '**/*.cts'];
 
   const excludePatterns = exclude
     ? Array.isArray(exclude)
       ? exclude
       : [exclude]
-    : ["node_modules/**"];
+    : ['node_modules/**'];
 
   return {
-    name: "tsover",
-    enforce: "pre", // Run before other transforms
+    name: 'tsover',
+    enforce: 'pre', // Run before other transforms
 
     buildStart() {
       // Initialize the program manager at build start
@@ -163,7 +163,7 @@ export const rspackPlugin = unplugin.rspack;
  * Check if a file should be transformed based on include/exclude patterns
  */
 function shouldTransform(id: string, include: string[], exclude: string[]): boolean {
-  const { minimatch } = require("minimatch");
+  const { minimatch } = require('minimatch');
 
   // Check exclude patterns first
   for (const pattern of exclude) {
