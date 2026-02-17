@@ -1,5 +1,42 @@
-import { Card } from "fumadocs-ui/components/card";
 import HeroExample from "@/content/home/hero-example.mdx";
+import Link from "next/link";
+import { ArrowRight, Github } from "lucide-react";
+
+interface ButtonProps {
+  href: string;
+  children: React.ReactNode;
+  variant?: "primary" | "secondary";
+  external?: boolean;
+  icon?: React.ReactNode;
+}
+
+function Button({
+  href,
+  children,
+  variant = "primary",
+  external = false,
+  icon,
+}: ButtonProps) {
+  const baseStyles =
+    "inline-flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-200";
+  const variants = {
+    primary:
+      "bg-linear-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 shadow-lg hover:shadow-xl hover:-translate-y-0.5",
+    secondary:
+      "bg-white border-2 border-gray-200 text-gray-800 hover:border-gray-300 hover:bg-gray-50",
+  };
+
+  const linkProps = external
+    ? { target: "_blank", rel: "noopener noreferrer" }
+    : {};
+
+  return (
+    <Link href={href} className={`${baseStyles} ${variants[variant]}`} {...linkProps}>
+      {children}
+      {icon}
+    </Link>
+  );
+}
 
 export default function HomePage() {
   return (
@@ -8,7 +45,7 @@ export default function HomePage() {
       <div className="flex flex-row justify-between items-center text-left gap-16">
         <div className="flex flex-col gap-6">
           <div>
-            <h1 className="text-6xl font-bold mb-2 bg-linear-to-r from-red-500 to-purple-500 text-transparent bg-clip-text">
+            <h1 className="text-6xl font-bold mb-2 bg-linear-to-r from-blue-600 to-cyan-600 text-transparent bg-clip-text">
               tsover
             </h1>
             <p className="text-2xl text-black/70">
@@ -16,11 +53,17 @@ export default function HomePage() {
             </p>
           </div>
           <div className="flex gap-4">
-            <Card href="/docs" title="Get Started" />
-            <Card
+            <Button href="/docs" icon={<ArrowRight className="w-4 h-4" />}>
+              Get Started
+            </Button>
+            <Button
               href="https://github.com/software-mansion/tsover"
-              title="GitHub"
-            />
+              variant="secondary"
+              external
+              icon={<Github className="w-4 h-4" />}
+            >
+              GitHub
+            </Button>
           </div>
         </div>
 
