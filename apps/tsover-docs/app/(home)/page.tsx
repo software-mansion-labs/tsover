@@ -23,7 +23,7 @@ function Button({
     primary:
       "bg-linear-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 shadow-lg hover:shadow-xl hover:-translate-y-0.5",
     secondary:
-      "bg-white border-2 border-gray-200 text-gray-800 hover:border-gray-300 hover:bg-gray-50",
+      "bg-fd-card border-2 border-fg/20 text-fg hover:border-fg/30 hover:bg-fg/5",
   };
 
   const linkProps = external
@@ -48,7 +48,7 @@ export default function HomePage() {
             <h1 className="text-6xl font-bold mb-2 bg-linear-to-r from-blue-600 to-cyan-600 text-transparent bg-clip-text">
               tsover
             </h1>
-            <p className="text-2xl text-black/70">
+            <p className="text-2xl text-fg/70">
               TypeScript with Operator Overloading
             </p>
           </div>
@@ -77,21 +77,21 @@ export default function HomePage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mx-auto w-full">
         <div className="p-6 rounded-lg border border-fg/10">
           <h3 className="text-xl font-bold mb-2">Sustainable Fork</h3>
-          <p className="text-black/70 text-justify">
+          <p className="text-fg/70 text-justify">
             A sustainable fork of TypeScript that requires minimal maintenance
             thanks to a procedural application of patches.
           </p>
         </div>
         <div className="p-6 rounded-lg border border-fg/10">
           <h3 className="text-xl font-bold mb-2">Drop-in Replacement</h3>
-          <p className="text-black/70 text-justify">
+          <p className="text-fg/70 text-justify">
             The package is fully compatible with TypeScript and can be used as a
             drop-in replacement.
           </p>
         </div>
         <div className="p-6 rounded-lg border border-fg/10">
           <h3 className="text-xl font-bold mb-2">Progressive Enhancement</h3>
-          <p className="text-black/70 text-justify">
+          <p className="text-fg/70 text-justify">
             Libraries can offer operator overloading to their users without
             requiring them to depend on tsover.
           </p>
@@ -99,7 +99,7 @@ export default function HomePage() {
       </div>
 
       {/* Footer */}
-      <footer className="mt-8 pt-8 border-t border-fg-muted/20 text-sm text-black/70 w-full max-w-5xl mx-auto">
+      <footer className="mt-8 pt-8 border-t border-fg-muted/20 text-sm text-fg/70 w-full max-w-5xl mx-auto">
         <p>
           Created by{" "}
           <a
