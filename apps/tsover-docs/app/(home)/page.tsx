@@ -1,6 +1,6 @@
 import HeroExample from "@/content/home/hero-example.mdx";
 import Link from "next/link";
-import { ArrowRight, Github } from "lucide-react";
+import { ArrowRight, Github, Leaf, RefreshCw, Puzzle } from "lucide-react";
 
 interface ButtonProps {
   href: string;
@@ -78,24 +78,39 @@ export default function HomePage() {
       </div>
 
       {/* Strengths Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mx-auto w-full">
-        <div className="p-6 rounded-lg border border-fg/10">
-          <h3 className="text-xl font-bold mb-2">Sustainable Fork</h3>
-          <p className="text-fg/70 text-justify">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto w-full text-left">
+        <div className="group p-6 rounded-xl border border-fg/10 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 hover:from-emerald-500/10 hover:to-teal-500/10 hover:border-emerald-500/30 transition-all duration-300 hover:-translate-y-1">
+          <div className="w-12 h-12 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+            <Leaf className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <h3 className="text-xl font-bold mb-2 text-emerald-700 dark:text-emerald-400">
+            Sustainable Fork
+          </h3>
+          <p className="text-fg/70 leading-relaxed">
             A sustainable fork of TypeScript that requires minimal maintenance
             thanks to a procedural application of patches.
           </p>
         </div>
-        <div className="p-6 rounded-lg border border-fg/10">
-          <h3 className="text-xl font-bold mb-2">Drop-in Replacement</h3>
-          <p className="text-fg/70 text-justify">
+        <div className="group p-6 rounded-xl border border-fg/10 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 hover:from-blue-500/10 hover:to-cyan-500/10 hover:border-blue-500/30 transition-all duration-300 hover:-translate-y-1">
+          <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+            <RefreshCw className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+          </div>
+          <h3 className="text-xl font-bold mb-2 text-blue-700 dark:text-blue-400">
+            Drop-in Replacement
+          </h3>
+          <p className="text-fg/70 leading-relaxed">
             The package is fully compatible with TypeScript and can be used as a
             drop-in replacement.
           </p>
         </div>
-        <div className="p-6 rounded-lg border border-fg/10">
-          <h3 className="text-xl font-bold mb-2">Progressive Enhancement</h3>
-          <p className="text-fg/70 text-justify">
+        <div className="group p-6 rounded-xl border border-fg/10 bg-gradient-to-br from-violet-500/5 to-purple-500/5 hover:from-violet-500/10 hover:to-purple-500/10 hover:border-violet-500/30 transition-all duration-300 hover:-translate-y-1">
+          <div className="w-12 h-12 rounded-lg bg-violet-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+            <Puzzle className="w-6 h-6 text-violet-600 dark:text-violet-400" />
+          </div>
+          <h3 className="text-xl font-bold mb-2 text-violet-700 dark:text-violet-400">
+            Progressive Enhancement
+          </h3>
+          <p className="text-fg/70 leading-relaxed">
             Libraries can offer operator overloading to their users without
             requiring them to depend on tsover.
           </p>
