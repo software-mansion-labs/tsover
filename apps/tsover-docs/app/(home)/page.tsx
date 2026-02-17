@@ -21,7 +21,7 @@ function Button({
     "inline-flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-200";
   const variants = {
     primary:
-      "bg-linear-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 shadow-lg hover:shadow-xl hover:-translate-y-0.5",
+      "bg-linear-to-r bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl",
     secondary:
       "bg-fd-card border-2 border-fg/20 text-fg hover:border-fg/30 hover:bg-fg/5",
   };
