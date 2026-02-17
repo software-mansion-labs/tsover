@@ -1,0 +1,57 @@
+---
+title: Defining Overloads
+description: How to define overloaded operators in tsover
+---
+
+Prior to following this guide, make sure you have setup `tsover` as described in [Getting Started](/docs).
+To define operator overloads, you need to install a minimal runtime dependency called `tsover-runtime`.
+
+```npm
+npm install tsover-runtime
+```
+
+## Class Example
+
+```ts twoslash
+import { Operator } from 'tsover-runtime';
+
+class Vec2f {
+  x: number;
+  y: number;
+
+  constructor(x: number, y: number) {
+    this.x = x;
+    this.y = y;
+  }
+
+  // lhs + rhs
+  [Operator.plus](lhs: Vec2f, rhs: Vec2f): Vec2f {
+    return new Vec2f(lhs.x + rhs.x, lhs.y + rhs.y);
+  }
+  
+  [Operator.star](lhs: Vec2f | number, rhs: Vec2f | number): Vec2f;
+  [Operator.star](lhs: Vec2f | number, rhs: Vec2f | number): Vec2f | typeof Operator.deferOperation {
+    if (typeof lhs === 'number' && rhs instanceof Vec2f) {
+      return new Vec2f(lhs * rhs.x, lhs * rhs.y);
+    }
+    if (typeof rhs === 'number' && lhs instanceof Vec2f) {
+      return new Vec2f(lhs.x * rhs, lhs.y * rhs);
+    }
+    if (lhs instanceof Vec2f && rhs instanceof Vec2f) {
+      return new Vec2f(lhs.x * rhs.x, lhs.y * rhs.y);
+    }
+    // Letting the other operand handle the operation
+    return Operator.deferOperation;
+  }
+}
+
+function compute() {
+  'use tsover';
+  const a = new Vec2f(1, 2);
+  
+  const b = a * 2;
+  //    ^?
+  const c = 4 * a;
+  //    ^?
+}
+```

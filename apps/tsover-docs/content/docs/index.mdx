@@ -3,22 +3,222 @@ title: Getting Started
 description: How to get setup with tsover
 ---
 
-```json
-{
-  "devDependencies": {
-    "typescript": "^5.9.3" // [!code --]
-    "typescript": "npm:tsover@^5.9.5" // [!code ++]
+After completing this guide, overloaded operators will be available within `'use tsover'` marked scopes.
+
+```ts twoslash tab="main.ts"
+// @noEmit: true
+// @allowImportingTsExtensions: true
+// @lib: tsover
+// @filename: vec2f.ts
+import { Operator } from 'tsover-runtime';
+
+export class Vec2f {
+  x: number;
+  y: number;
+
+  constructor(x: number, y: number) {
+    this.x = x;
+    this.y = y;
+  }
+
+  [Operator.plus](lhs: Vec2f, rhs: Vec2f): Vec2f {
+    return new Vec2f(lhs.x + rhs.x, lhs.y + rhs.y);
+  }
+}
+
+// @filename: main.ts
+// ---cut-before---
+'use tsover'; // a directive that allows use of overloaded operators
+
+import { Vec2f } from './vec2f.ts';
+
+const a = new Vec2f(1, 2);
+const b = new Vec2f(3, 4);
+
+const c = a + b;
+//    ^?
+
+function compute() {
+  'use tsover'; // you can also be more granular, and mark functions
+  return a + b;
+}
+```
+
+```ts twoslash tab="vec2f.ts"
+import { Operator } from 'tsover-runtime';
+
+export class Vec2f {
+  x: number;
+  y: number;
+
+  constructor(x: number, y: number) {
+    this.x = x;
+    this.y = y;
+  }
+
+  // lhs + rhs
+  [Operator.plus](lhs: Vec2f, rhs: Vec2f): Vec2f {
+    return new Vec2f(lhs.x + rhs.x, lhs.y + rhs.y);
   }
 }
 ```
 
-## Projects using **tsover**
+## Installation
 
+The `tsover` package is a drop-in replacement for TypeScript, and to install it, first change what `typescript` points to in your `package.json` file.
+
+```json title="package.json"
+{
+  "devDependencies": {
+    "typescript": "^5.9.3" // [!code --]
+    "typescript": "npm:tsover@latest" // [!code ++]
+  }
+}
+```
+
+<Callout>
+Instead of `@latest`, consider pinning a version where `major.minor` matches between `tsover` and `typescript`, for example:
+- typescript@**5.9**.3 => tsover@**5.9**.x
+</Callout>
+
+There could be other packages that depend on `typescript`, so it's best to override them as well.
+
+```json title="package.json" tab="npm"
+{
+  "overrides": {
+    "typescript": "npm:tsover@latest"
+  }
+}
+```
+
+```json title="package.json" tab="yarn"
+{
+  "resolutions": {
+    "typescript": "npm:tsover@latest"
+  }
+}
+```
+
+```json title="package.json" tab="pnpm"
+{
+  "pnpm": {
+    "overrides": {
+      "typescript": "npm:tsover@latest"
+    }
+  }
+}
+```
+
+```json title="package.json" tab="bun"
+{
+  "overrides": {
+    "typescript": "npm:tsover@latest"
+  }
+}
+```
+
+<Callout>In a monorepo setup, overrides/resolutions should be defined in the root `package.json` file.</Callout>
+
+## tsconfig.json
+
+All additional `tsover` functionality is enabled only when `"tsover"` is included as a lib in your `tsconfig.json` file.
+
+```json title="tsconfig.json"
+{
+  "compilerOptions": {
+    "lib": ["tsover", /*...*/]
+  }
+}
+```
+
+## Editor setup
+
+IDE support was one of the main driving forces behind the creation of `tsover`, and to enable it, you need to configure your editor to use `tsover` instead of `typescript`.
+
+### VS Code / Cursor / Windsurf / Antigravity
+
+For VS Code and it's forks, just make sure you're using the **Workspace** version of TypeScript. You can
+do so by opening up the command palette (`Ctrl+Shift+P`) and searching for `TypeScript: Select TypeScript Version`. Then, select `Use Workspace Version`.
+
+In case that doesn't work, ensure that the `typescript.tsdk` setting is set to the correct path in `.vscode/settings.json`:
+```json
+{
+  "typescript.tsdk": "node_modules/typescript/lib"
+}
+```
+
+### Zed
+
+Configure vtsls settings in your Zed settings file:
+
+```jsonc
+// .zed/settings.json
+{
+  "lsp": {
+    "vtsls": {
+      "settings": {
+        "typescript": {
+          "tsdk": "node_modules/typescript/lib",
+        },
+      },
+    },
+  },
+  // ...
+}
+```
+
+## Code Transform
+
+<Callout type="idea">
+
+If you're using TypeGPU, its bundler plugin `unplugin-typegpu` already handles operator overloads that are placed inside 'use gpu' marked functions.
+
+Unless you want overloaded operators to work outside of 'use gpu' marked functions, you can skip this step.
+
+</Callout>
+
+While `tsover` enables TypeScript to understand operator overloads, the target runtime must support them as well.
+A bundler plugin is shipped as part of the `tsover` package, which can be used to transform your code into a format that
+supports operator overloads.
+
+### Vite
+```ts
+import { defineConfig } from 'vite';
+import tsover from 'tsover/plugin/vite';
+
+export default defineConfig({
+  plugins: [tsover()],
+});
+```
+
+### Rollup
+```ts
+import { defineConfig } from 'rollup';
+import tsover from 'tsover/plugin/rollup';
+
+export default defineConfig({
+  plugins: [tsover()],
+});
+```
+
+### Rolldown
+
+```ts
+import { defineConfig } from 'rolldown';
+import tsover from 'tsover/plugin/rolldown';
+
+export default defineConfig({
+  plugins: [tsover()],
+});
+```
+
+<>
+{/*
+## What's next?
+
+With this, you can already enjoy overloaded operators provided by tsover-enabled libraries:
 - TypeGPU
 
-## What is Next?
-
-<Cards>
-  <Card title="Learn more about Next.js" href="https://nextjs.org/docs" />
-  <Card title="Learn more about Fumadocs" href="https://fumadocs.dev" />
-</Cards>
+If you're interested in defining overloaded operators for your own types, follow along to [Defining Overloads](/docs/defining-overloads).
+*/}
+</>

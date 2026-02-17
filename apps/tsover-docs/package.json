@@ -13,12 +13,15 @@
     "@orama/orama": "^3.1.18",
     "fumadocs-core": "16.6.2",
     "fumadocs-mdx": "14.2.7",
+    "fumadocs-twoslash": "^3.1.13",
     "fumadocs-ui": "16.6.2",
     "lucide-react": "^0.563.0",
     "next": "16.1.6",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "^3.4.0",
+    "twoslash": "^0.3.6",
+    "tsover-runtime": "workspace:*"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",
@@ -29,6 +32,6 @@
     "postcss": "^8.5.6",
     "serve": "^14.2.5",
     "tailwindcss": "^4.1.18",
-    "typescript": "^5.9.3"
+    "typescript": "workspace:tsover@*"
   }
 }

@@ -8,6 +8,7 @@ const withMDX = createMDX();
 const config = {
   output: 'export',
   basePath: '/tsover',
+  serverExternalPackages: ['typescript', 'twoslash'],
   reactStrictMode: true,
 };
 
