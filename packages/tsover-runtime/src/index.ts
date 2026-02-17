@@ -91,7 +91,13 @@ const normalAdd = (a: number, b: number) => a + b;
  * If either operand has Symbol.operatorPlus, uses that operator
  * Otherwise falls back to standard JavaScript + behavior
  */
-export function add(a: unknown, b: unknown): unknown {
+function add(a: unknown, b: unknown): unknown {
+  // Fast paths for numerics or strings
+  if ((typeof a === "number" || typeof a === "string") && (typeof b === "number" || typeof b === "string")) {
+    // The types here don't matter, we let JS handle it as it would
+    return (a as number) + (b as number);
+  }
+
   return binOp(a, b, Operator.plus, normalAdd);
 }
 
@@ -102,7 +108,12 @@ const normalSub = (a: number, b: number) => a - b;
  * If either operand has Symbol.operatorMinus, uses that operator
  * Otherwise falls back to standard JavaScript - behavior
  */
-export function sub(a: unknown, b: unknown): unknown {
+function sub(a: unknown, b: unknown): unknown {
+  // Fast paths for numerics
+  if (typeof a === "number" && typeof b === "number") {
+    return a - b;
+  }
+
   return binOp(a, b, Operator.minus, normalSub);
 }
 
@@ -113,7 +124,12 @@ const normalMul = (a: number, b: number) => a * b;
  * If either operand has Symbol.operatorStar, uses that operator
  * Otherwise falls back to standard JavaScript * behavior
  */
-export function mul(a: unknown, b: unknown): unknown {
+function mul(a: unknown, b: unknown): unknown {
+  // Fast paths for numerics
+  if (typeof a === "number" && typeof b === "number") {
+    return a * b;
+  }
+
   return binOp(a, b, Operator.star, normalMul);
 }
 
@@ -124,7 +140,12 @@ const normalDiv = (a: number, b: number) => a / b;
  * If either operand has Symbol.operatorSlash, uses that operator
  * Otherwise falls back to standard JavaScript / behavior
  */
-export function div(a: unknown, b: unknown): unknown {
+function div(a: unknown, b: unknown): unknown {
+  // Fast paths for numerics
+  if (typeof a === "number" && typeof b === "number") {
+    return a / b;
+  }
+
   return binOp(a, b, Operator.slash, normalDiv);
 }
 
