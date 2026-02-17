@@ -10,6 +10,16 @@ To define operator overloads, you need to install a minimal runtime dependency c
 npm install tsover-runtime
 ```
 
+## API
+
+`tsover-runtime` exports the following:
+
+- `Operator.plus` - symbol used to define the `+` and `+=` operators
+- `Operator.minus` - symbol used to define the `-` and `-=` operators
+- `Operator.star` - symbol used to define the `*` and `*=` operators
+- `Operator.slash` - symbol used to define the `/` and `/=` operators
+- `Operator.deferOperation` - symbol used to defer the operation to the other operand
+
 ## Class Example
 
 ```ts twoslash
