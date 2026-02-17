@@ -32,11 +32,17 @@ jobs:
           node-version: 20
           cache: pnpm
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
-      - name: Build docs
-        run: pnpm --filter tsover-docs build
+      - name: Install and build dependencies
+        run: |
+          pnpm install --frozen-lockfile --filter tsover
+          pnpm --filter tsover run patch
+          pnpm install --frozen-lockfile
+
+      - name: Build everything
+        run: pnpm run -r build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
