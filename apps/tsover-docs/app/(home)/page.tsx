@@ -44,9 +44,9 @@ function Button({
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col items-center justify-center text-center gap-12 py-12">
+    <div className="flex flex-col items-center justify-center text-center gap-12 py-12 px-5">
       {/* Hero */}
-      <div className="flex flex-row justify-between items-center text-left gap-16">
+      <div className="flex flex-col lg:flex-row justify-between items-center text-left gap-16">
         <div className="flex flex-col gap-6">
           <div>
             <h1 className="text-6xl font-bold mb-2 bg-linear-to-r from-blue-600 to-cyan-600 text-transparent bg-clip-text">
@@ -72,7 +72,7 @@ export default function HomePage() {
         </div>
 
         {/* Code Snippet */}
-        <div className="w-fit py-4 px-1 max-w-2xl border rounded-xl">
+        <div className="w-fit py-4 px-1 max-w-2xl border rounded-xl [&_pre]:text-xs sm:[&_pre]:text-base [&_.twoslash-popup-container]:w-[15em]!">
           <HeroExample />
         </div>
       </div>
