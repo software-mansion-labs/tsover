@@ -31,7 +31,11 @@ function Button({
     : {};
 
   return (
-    <Link href={href} className={`${baseStyles} ${variants[variant]}`} {...linkProps}>
+    <Link
+      href={href}
+      className={`${baseStyles} ${variants[variant]}`}
+      {...linkProps}
+    >
       {children}
       {icon}
     </Link>
@@ -57,7 +61,7 @@ export default function HomePage() {
               Get Started
             </Button>
             <Button
-              href="https://github.com/software-mansion/tsover"
+              href="https://github.com/software-mansion-labs/tsover"
               variant="secondary"
               external
               icon={<Github className="w-4 h-4" />}
