@@ -11,7 +11,7 @@
     "vite-plugin",
     "webpack-plugin"
   ],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "bin": {
     "tsc": "./bin/tsc",
     "tsserver": "./bin/tsserver"
