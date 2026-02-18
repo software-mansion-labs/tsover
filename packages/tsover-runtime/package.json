@@ -6,7 +6,7 @@
     "operator-overloading",
     "typescript"
   ],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "files": [
     "dist",
     "README.md",

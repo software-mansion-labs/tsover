@@ -6,6 +6,28 @@ import { resolve } from 'path';
 
 const tag = process.argv[2];
 
+const SWM_LICENSE = `\
+/*
+ * Copyright 2026 Software Mansion S.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+`;
+
+const SWM_CHANGE_NOTICE = `\
+/*! Modified by Software Mansion S.A. on [data] to implement operator overloading. */
+`;
+
 if (!tag) {
   console.log('No tag specified. Fetching available tags from GitHub...\n');
 
@@ -125,6 +147,8 @@ try {
   const patchErrors: unknown[] = [];
 
   try {
+    typesContent = SWM_CHANGE_NOTICE + typesContent;
+
     typesContent = injectAfter(
       typesContent,
       /export interface NodeLinks \{[\S\s]*nonExistentPropCheckCache\?: Set<string>;/,
@@ -163,6 +187,8 @@ try {
   let checkerContent = await readFile(checkerPath, 'utf-8');
 
   try {
+    checkerContent = SWM_CHANGE_NOTICE + checkerContent;
+
     if (!checkerContent.includes('isPrologueDirective')) {
       // Only import isPrologueDirective if it's not already imported
       checkerContent = injectBefore(
@@ -333,6 +359,7 @@ try {
   // Look for the esnext.sharedmemory entry and insert tsover after it
   const cmdParserPattern = /(\["esnext\.sharedmemory", "lib\.esnext\.sharedmemory\.d\.ts"\],)/;
   if (cmdParserPattern.test(cmdParserContent)) {
+    cmdParserContent = SWM_CHANGE_NOTICE + cmdParserContent;
     cmdParserContent = cmdParserContent.replace(
       cmdParserPattern,
       `$1\n    ["tsover", "lib.tsover.d.ts"],`,
@@ -391,7 +418,7 @@ try {
 
   // Create tsover.d.ts
   const tsoverDtsPath = resolve(typescriptTargetDir, 'src', 'lib', 'tsover.d.ts');
-  const tsoverDtsContent = `\
+  const tsoverDtsContent = `${SWM_LICENSE}
 declare var __tsover__enabled: true;
 
 interface SymbolConstructor {
