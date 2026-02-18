@@ -13,7 +13,7 @@ export function shouldTransformBinaryExpression(
 ): boolean {
   if (checker.__tsover__isInUseGpuScope(node)) {
     // Only transforming if inside 'use tsover' directive, but NOT inside 'use gpu' directive.
-    // This is because unplugin-typegpu handles that transformation on it's own.
+    // This is because unplugin-typegpu handles that transformation on its own.
     return false;
   }
 
