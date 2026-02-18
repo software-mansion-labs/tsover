@@ -70,6 +70,9 @@ export const unpluginFactory: UnpluginFactory<TsOverPluginOptions | undefined> =
 
     transform(code: string, id: string) {
       try {
+        // Refresh the program to pick up file changes
+        programManager.refresh();
+
         // Get the source file from the program
         const sourceFile = programManager.getSourceFile(id);
 
