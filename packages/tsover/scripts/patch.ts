@@ -284,12 +284,15 @@ try {
       left: Expression,
       operator: BinaryOperator,
       right: Expression,
-      leftType: Type,
-      rightType: Type
+      _leftType: Type,
+      _rightType: Type
     ): Type | undefined {
         if (!(__tsover__isInUseTsoverScope(left) || __tsover__isInUseGpuScope(left)) || !__tsover__overloaded[operator as keyof typeof __tsover__overloaded]) {
             return undefined;
         }
+
+        const leftType = getBaseConstraintOrType(_leftType);
+        const rightType = getBaseConstraintOrType(_rightType);
 
         const deferOperationType = __tsover__getDeferOperationSymbolType();
         const symbols = __tsover__overloaded[operator as keyof typeof __tsover__overloaded].map(getPropertyNameForKnownSymbolName);
