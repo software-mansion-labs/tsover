@@ -61,7 +61,8 @@
   "scripts": {
     "patch": "bun scripts/patch.ts v5.9.3 && rm -rf ./bin && rm -rf ./lib && cp -R typescript/bin ./ && cp -R typescript/built/local ./lib && cp typescript/LICENSE.txt ./lib && cp typescript/LICENSE.txt ./bin",
     "build": "tsdown",
-    "prepublishOnly": "pnpm run patch && pnpm run build"
+    "test": "pnpm run build && vitest",
+    "prepublishOnly": "pnpm run patch && pnpm run build && vitest run"
   },
   "dependencies": {
     "minimatch": "^9.0.0",
@@ -71,6 +72,9 @@
     "@types/node": "^20.0.0",
     "comment-json": "^4.5.1",
     "tsdown": "^0.20.3",
-    "typescript": "^5.0.0"
+    "tsover": "workspace:*",
+    "tsover-runtime": "workspace:*",
+    "typescript": "^5.0.0",
+    "vitest": "^4.0.18"
   }
 }

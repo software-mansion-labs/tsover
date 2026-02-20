@@ -9,6 +9,10 @@ export class Vec2f {
     this.y = y;
   }
 
+  toString(): string {
+    return `(${this.x}, ${this.y})`;
+  }
+
   /** lhs + rhs */
   [Operator.plus](lhs: Vec2f, rhs: Vec2f): Vec2f {
     return new Vec2f(lhs.x + rhs.x, lhs.y + rhs.y);

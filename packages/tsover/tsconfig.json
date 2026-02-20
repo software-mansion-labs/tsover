@@ -4,8 +4,8 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "lib": ["ES2020"],
+    "rootDir": ".",
     "outDir": "./dist",
-    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -13,8 +13,8 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "types": ["@types/bun"]
+    "types": ["@types/bun"],
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*", "tests/**/*"],
+  "exclude": ["node_modules", "dist"],
 }

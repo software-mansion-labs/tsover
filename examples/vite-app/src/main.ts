@@ -1,7 +1,5 @@
 "use tsover";
 import "./style.css";
-import typescriptLogo from "./typescript.svg";
-import viteLogo from "/vite.svg";
 import { setupCounter } from "./counter.ts";
 
 import { Vec2f } from "./vec2f.ts";
@@ -12,23 +10,17 @@ a += b;
 const c = a + b;
 const d = a * 2;
 const e = 2 * a;
-console.log(c, d, e);
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://www.typescriptlang.org/" target="_blank">
-      <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-    </a>
-    <h1>Vite + TypeScript</h1>
+    <h1>tsover - Vite example</h1>
     <div class="card">
-      <button id="counter" type="button"></button>
+      <p>a = ${a.toString()}</p>
+      <p>b = ${b.toString()}</p>
+      <p>a + b = ${c.toString()}</p>
+      <p>a * 2 = ${d.toString()}</p>
+      <p>2 * a = ${e.toString()}</p>
     </div>
-    <p class="read-the-docs">
-      Click on the Vite and TypeScript logos to learn more
-    </p>
   </div>
 `;
 

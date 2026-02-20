@@ -13,11 +13,6 @@ export interface TsOverPluginOptions {
   tsconfigPath?: string;
 
   /**
-   * Module name to import the runtime from. Defaults to 'tsover/runtime'.
-   */
-  moduleName?: string;
-
-  /**
    * Include patterns for files to transform. Defaults to all TypeScript files.
    */
   include?: string | string[];
@@ -32,12 +27,7 @@ export interface TsOverPluginOptions {
  * Factory function for creating the tsover unplugin
  */
 export const unpluginFactory: UnpluginFactory<TsOverPluginOptions | undefined> = (options = {}) => {
-  const {
-    tsconfigPath,
-    moduleName = 'tsover-runtime',
-    include,
-    exclude = 'node_modules/**',
-  } = options;
+  const { tsconfigPath, include, exclude = 'node_modules/**' } = options;
 
   // Initialize the TypeScript program manager (cached indefinitely)
   let programManager: ProgramManager;
@@ -80,6 +70,9 @@ export const unpluginFactory: UnpluginFactory<TsOverPluginOptions | undefined> =
 
     transform(code: string, id: string) {
       try {
+        // Refresh the program to pick up file changes
+        programManager.refresh();
+
         // Get the source file from the program
         const sourceFile = programManager.getSourceFile(id);
 
@@ -96,7 +89,6 @@ export const unpluginFactory: UnpluginFactory<TsOverPluginOptions | undefined> =
         const result = transformSourceFile({
           checker,
           sourceFile,
-          moduleName,
         });
 
         // If no changes were made, return null

@@ -67,7 +67,6 @@ export class ProgramManager {
   }
 
   private createProgram(): ts.Program {
-    // Get all source files from the configuration
     const configFile = ts.readConfigFile(this.configPath, ts.sys.readFile);
     const parsedConfig = ts.parseJsonConfigFileContent(
       configFile.config,
@@ -77,7 +76,6 @@ export class ProgramManager {
 
     const program = ts.createProgram(parsedConfig.fileNames, this.options, this.host);
 
-    // Check for diagnostics
     const diagnostics = ts.getPreEmitDiagnostics(program);
     const errors = diagnostics.filter((d) => d.category === ts.DiagnosticCategory.Error);
 
@@ -95,9 +93,7 @@ export class ProgramManager {
         })
         .join('\n\n');
 
-      throw new Error(
-        `Type checking failed for project at ${this.configPath}:\n\n${errorMessages}`,
-      );
+      console.warn(`[tsover] Type checking warnings:\n\n${errorMessages}`);
     }
 
     return program;
@@ -116,6 +112,10 @@ export class ProgramManager {
 
   getSourceFile(fileName: string): ts.SourceFile | undefined {
     return this.getProgram().getSourceFile(fileName);
+  }
+
+  refresh(): void {
+    this.program = this.createProgram();
   }
 
   destroy(): void {
