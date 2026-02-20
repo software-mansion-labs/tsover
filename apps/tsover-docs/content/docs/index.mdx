@@ -153,13 +153,31 @@ In case that doesn't work, ensure that the `typescript.tsdk` setting is set to t
 
 ### Zed
 
-Configure vtsls settings in your Zed settings file:
+To configure `vtsls`, change settings in your Zed settings file:
 
 ```jsonc
 // .zed/settings.json
 {
   "lsp": {
     "vtsls": {
+      "settings": {
+        "typescript": {
+          "tsdk": "node_modules/typescript/lib",
+        },
+      },
+    },
+  },
+  // ...
+}
+```
+
+If instead you're using `typescript-language-server`, change your settings file to the following
+
+```jsonc
+// .zed/settings.json
+{
+  "lsp": {
+    "typescript-language-server": {
       "settings": {
         "typescript": {
           "tsdk": "node_modules/typescript/lib",
