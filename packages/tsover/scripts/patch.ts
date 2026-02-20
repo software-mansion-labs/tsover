@@ -291,26 +291,68 @@ try {
             return undefined;
         }
 
-        const leftType = getBaseConstraintOrType(_leftType);
-        const rightType = getBaseConstraintOrType(_rightType);
+
+        let combinations: [Type, Type][] = [];
+        {
+            const leftType = getBaseConstraintOrType(_leftType);
+            const rightType = getBaseConstraintOrType(_rightType);
+
+            // _leftType is a constrained type (a generic), and _rightType is of the same type.
+            // If they're unions, we only need to consider the combinations where lhs and rhs match.
+            if (_leftType === _rightType && _leftType !== leftType) {
+                if (leftType.flags & TypeFlags.Union) {
+                    combinations = (leftType as UnionType).types.map(t => [t, t]);
+                } else {
+                    combinations = [[leftType, leftType]];
+                }
+            } else if (leftType.flags & TypeFlags.Union && rightType.flags & TypeFlags.Union) {
+                for (const leftMember of (leftType as UnionType).types) {
+                    for (const rightMember of (rightType as UnionType).types) {
+                        combinations.push([leftMember, rightMember]);
+                    }
+                }
+            } else if (leftType.flags & TypeFlags.Union) {
+                for (const leftMember of (leftType as UnionType).types) {
+                    combinations.push([leftMember, rightType]);
+                }
+            } else if (rightType.flags & TypeFlags.Union) {
+                for (const rightMember of (rightType as UnionType).types) {
+                    combinations.push([leftType, rightMember]);
+                }
+            } else {
+              combinations.push([leftType, rightType]);
+            }
+        }
 
         const deferOperationType = __tsover__getDeferOperationSymbolType();
         const symbols = __tsover__overloaded[operator as keyof typeof __tsover__overloaded].map(getPropertyNameForKnownSymbolName);
-        const lhsOverload = symbols.reduce<Type | undefined>((acc, symbol) => acc ?? getTypeOfPropertyOfType(leftType, symbol), undefined);
-        const rhsOverload = symbols.reduce<Type | undefined>((acc, symbol) => acc ?? getTypeOfPropertyOfType(rightType, symbol), undefined);
-        const lhsSignatures = lhsOverload ? getSignaturesOfType(lhsOverload, SignatureKind.Call) : [];
-        let resultType = __tsover__findBinarySignature(lhsSignatures, leftType, rightType);
+        const resultMembers: Type[] = [];
+        for (const [leftType, rightType] of combinations) {
+            const lhsOverload = symbols.reduce<Type | undefined>((acc, symbol) => acc ?? getTypeOfPropertyOfType(leftType, symbol), undefined);
+            const rhsOverload = symbols.reduce<Type | undefined>((acc, symbol) => acc ?? getTypeOfPropertyOfType(rightType, symbol), undefined);
+            const lhsSignatures = lhsOverload ? getSignaturesOfType(lhsOverload, SignatureKind.Call) : [];
+            let resultType = __tsover__findBinarySignature(lhsSignatures, leftType, rightType);
 
-        if (lhsSignatures.length === 0 || (resultType && deferOperationType && isTypeIdenticalTo(resultType, deferOperationType))) {
-            // Try rhs overloads if lhs has no overloads or if result has deferOperation symbol
-            const rhsSignatures = rhsOverload ? getSignaturesOfType(rhsOverload, SignatureKind.Call) : [];
-            resultType = __tsover__findBinarySignature(rhsSignatures, leftType, rightType);
+            if (lhsSignatures.length === 0 || (resultType && deferOperationType && isTypeIdenticalTo(resultType, deferOperationType))) {
+                // Try rhs overloads if lhs has no overloads or if result has deferOperation symbol
+                const rhsSignatures = rhsOverload ? getSignaturesOfType(rhsOverload, SignatureKind.Call) : [];
+                resultType = __tsover__findBinarySignature(rhsSignatures, leftType, rightType);
+            }
+            if (resultType && deferOperationType && isTypeIdenticalTo(resultType, deferOperationType)) {
+                resultType = undefined;
+            }
+
+            if (resultType !== undefined) {
+                resultMembers.push(resultType);
+            }
         }
-        if (resultType && deferOperationType && isTypeIdenticalTo(resultType, deferOperationType)) {
+
+        if (resultMembers.length === 0) {
+            // Fallback to normal TS behavior
             return undefined;
         }
 
-        return resultType;
+        return getUnionType(resultMembers);
     }
   `,
     );
