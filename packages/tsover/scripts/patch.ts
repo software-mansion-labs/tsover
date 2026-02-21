@@ -164,13 +164,13 @@ try {
       `
       __tsover__isInUseTsoverScope(node: Node): boolean;
       __tsover__isInUseGpuScope(node: Node): boolean;
-      __tsover__getOverloadReturnType(
+      __tsover__couldHaveOverloadedOperators(
         left: Expression,
         operator: BinaryOperator,
         right: Expression,
         leftType: Type,
         rightType: Type,
-      ): Type | undefined;
+      ): boolean;
       `,
     );
 
@@ -212,6 +212,13 @@ try {
         [SyntaxKind.SlashToken]: ['operatorSlash'],
         [SyntaxKind.SlashEqualsToken]: ['operatorSlashEq', 'operatorSlash'],
     };
+
+    const __tsover__assignmentOperators = [
+        SyntaxKind.PlusEqualsToken,
+        SyntaxKind.MinusEqualsToken,
+        SyntaxKind.AsteriskEqualsToken,
+        SyntaxKind.SlashEqualsToken,
+    ];
 
     function __tsover__findBinarySignature(signatures: readonly Signature[], lhs: Type, rhs: Type): Type | undefined {
         // Find a signature where the first parameter accepts lhs and second accepts rhs
@@ -280,17 +287,50 @@ try {
         return false;
     }
 
+    function __tsover__couldHaveOverloadedOperators(
+      left: Expression,
+      operator: BinaryOperator,
+      right: Expression,
+      _leftType: Type,
+      _rightType: Type,
+    ): boolean {
+        if (!(__tsover__isInUseTsoverScope(left) || __tsover__isInUseGpuScope(left)) || !__tsover__overloaded[operator as keyof typeof __tsover__overloaded]) {
+            return false;
+        }
+
+        const leftType = getBaseConstraintOrType(_leftType);
+        const rightType = getBaseConstraintOrType(_rightType);
+
+        const typesToCheck: Type[] = [];
+        if (leftType.flags & TypeFlags.Union) {
+            typesToCheck.push(...(leftType as UnionType).types);
+        } else {
+            typesToCheck.push(leftType);
+        }
+        if (rightType.flags & TypeFlags.Union) {
+            typesToCheck.push(...(rightType as UnionType).types);
+        } else {
+            typesToCheck.push(rightType);
+        }
+
+        const symbols = __tsover__overloaded[operator as keyof typeof __tsover__overloaded].map(getPropertyNameForKnownSymbolName);
+        return typesToCheck.some((aType) => {
+          const member = symbols.reduce<Type | undefined>((acc, symbol) => acc ?? getTypeOfPropertyOfType(leftType, symbol), undefined);
+          return member !== undefined;
+        });
+    }
+
     function __tsover__getOverloadReturnType(
       left: Expression,
       operator: BinaryOperator,
       right: Expression,
       _leftType: Type,
-      _rightType: Type
+      _rightType: Type,
+      checkDeeper: (lt: Type, rt: Type) => Type | undefined,
     ): Type | undefined {
         if (!(__tsover__isInUseTsoverScope(left) || __tsover__isInUseGpuScope(left)) || !__tsover__overloaded[operator as keyof typeof __tsover__overloaded]) {
             return undefined;
         }
-
 
         let combinations: [Type, Type][] = [];
         {
@@ -326,7 +366,7 @@ try {
 
         const deferOperationType = __tsover__getDeferOperationSymbolType();
         const symbols = __tsover__overloaded[operator as keyof typeof __tsover__overloaded].map(getPropertyNameForKnownSymbolName);
-        const resultMembers: Type[] = [];
+        let resultMembers: Type[] = [];
         for (const [leftType, rightType] of combinations) {
             const lhsOverload = symbols.reduce<Type | undefined>((acc, symbol) => acc ?? getTypeOfPropertyOfType(leftType, symbol), undefined);
             const rhsOverload = symbols.reduce<Type | undefined>((acc, symbol) => acc ?? getTypeOfPropertyOfType(rightType, symbol), undefined);
@@ -342,9 +382,20 @@ try {
                 resultType = undefined;
             }
 
-            if (resultType !== undefined) {
-                resultMembers.push(resultType);
+            // Might be a valid primitive that can be part of this operation. If the number
+            // of combinations is 1, then we can just fallback to standard behavior, but if not,
+            // we need to check deeper and append the result to the union.
+            if (resultType === undefined && combinations.length > 1) {
+                resultType = checkDeeper(leftType, rightType);
             }
+
+            // Both operands either have no overloads, or both have deferred.
+            if (resultType === undefined) {
+                // All union members must be valid operations
+                resultMembers = [];
+                break;
+            }
+            resultMembers.push(resultType);
         }
 
         if (resultMembers.length === 0) {
@@ -364,7 +415,7 @@ try {
       `
       __tsover__isInUseTsoverScope,
       __tsover__isInUseGpuScope,
-      __tsover__getOverloadReturnType,
+      __tsover__couldHaveOverloadedOperators,
       `,
     );
 
@@ -372,8 +423,18 @@ try {
       checkerContent,
       /function checkBinaryLikeExpressionWorker\([\S\s]*const operator = operatorToken\.kind;/,
       `
-      const overloadedType = __tsover__getOverloadReturnType(left, operator, right, leftType, rightType);
+      const overloadedType = __tsover__getOverloadReturnType(
+        left,
+        operator,
+        right,
+        leftType,
+        rightType,
+        (lt, rt) => checkBinaryLikeExpressionWorker(left, operatorToken, right, lt, rt, checkMode, errorNode),
+      );
       if (overloadedType) {
+          if (__tsover__assignmentOperators.includes(operator)) {
+            checkAssignmentOperator(overloadedType);
+          }
           return overloadedType;
       }
       `,
