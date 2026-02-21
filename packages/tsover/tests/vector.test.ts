@@ -77,6 +77,20 @@ test('A + B', () => {
   expect(new Vec2f(1, 1) + new Vec2f(1, 1)).not.toStrictEqual(new Vec2f(6, 6));
 });
 
+test('Vec2f | number, value * 2', () => {
+  function double(value: Vec2f | number): Vec2f | number {
+    'use tsover';
+    const result = value * 2;
+
+    expectTypeOf(result).toEqualTypeOf<Vec2f | number>();
+
+    return result;
+  }
+
+  expect(double(2)).toStrictEqual(4);
+  expect(double(new Vec2f(1, 2))).toStrictEqual(new Vec2f(2, 4));
+});
+
 test('T extends Vec2f, vec * 2', () => {
   function double<T extends Vec2f>(vec: T): T {
     'use tsover';
