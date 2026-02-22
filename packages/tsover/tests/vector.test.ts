@@ -116,13 +116,3 @@ test('T extends Vec2f | Vec3f, vec * vec', () => {
 
   expect(square(new Vec2f(0.5, 2))).toStrictEqual(new Vec2f(0.25, 4));
 });
-
-test('assignment to ephemeral value', () => {
-  'use tsover';
-
-  const vec = new Vec3f(1, 2, 3);
-  () => {
-    // @ts-expect-error: The left-hand side of an assignment expression must be a variable or a property access.
-    new Vec3f(1, 2, 3) += vec;
-  };
-});

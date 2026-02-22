@@ -315,7 +315,7 @@ try {
 
         const symbols = __tsover__overloaded[operator as keyof typeof __tsover__overloaded].map(getPropertyNameForKnownSymbolName);
         return typesToCheck.some((aType) => {
-          const member = symbols.reduce<Type | undefined>((acc, symbol) => acc ?? getTypeOfPropertyOfType(leftType, symbol), undefined);
+          const member = symbols.reduce<Type | undefined>((acc, symbol) => acc ?? getTypeOfPropertyOfType(aType, symbol), undefined);
           return member !== undefined;
         });
     }
