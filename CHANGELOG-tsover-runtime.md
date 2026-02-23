@@ -1,3 +1,6 @@
+# 0.0.5
+- Support for '%' overloads
+
 # 0.0.4
 - Support for '**' overloads
 
