@@ -203,25 +203,20 @@ try {
       /export function createTypeChecker\(host: TypeCheckerHost\): TypeChecker \{/,
       `
     const __tsover__overloaded = {
-        [SyntaxKind.PlusToken]: ['operatorPlus'],
-        [SyntaxKind.PlusEqualsToken]: ['operatorPlusEq', 'operatorPlus'],
-        [SyntaxKind.MinusToken]: ['operatorMinus'],
-        [SyntaxKind.MinusEqualsToken]: ['operatorMinusEq', 'operatorMinus'],
-        [SyntaxKind.AsteriskToken]: ['operatorStar'],
-        [SyntaxKind.AsteriskEqualsToken]: ['operatorStarEq', 'operatorStar'],
-        [SyntaxKind.SlashToken]: ['operatorSlash'],
-        [SyntaxKind.SlashEqualsToken]: ['operatorSlashEq', 'operatorSlash'],
-        [SyntaxKind.AsteriskAsteriskToken]: ['operatorStarStar'],
-        [SyntaxKind.AsteriskAsteriskEqualsToken]: ['operatorStarStarEq', 'operatorStarStar'],
+        [SyntaxKind.PlusToken]: 'operatorPlus',
+        [SyntaxKind.MinusToken]: 'operatorMinus',
+        [SyntaxKind.AsteriskToken]: 'operatorStar',
+        [SyntaxKind.SlashToken]: 'operatorSlash',
+        [SyntaxKind.AsteriskAsteriskToken]: 'operatorStarStar',
     };
 
-    const __tsover__assignmentOperators = [
-        SyntaxKind.PlusEqualsToken,
-        SyntaxKind.MinusEqualsToken,
-        SyntaxKind.AsteriskEqualsToken,
-        SyntaxKind.SlashEqualsToken,
-        SyntaxKind.AsteriskAsteriskEqualsToken,
-    ];
+    const __tsover__compoundOperators = {
+        [SyntaxKind.PlusEqualsToken]: SyntaxKind.PlusToken,
+        [SyntaxKind.MinusEqualsToken]: SyntaxKind.MinusToken,
+        [SyntaxKind.AsteriskEqualsToken]: SyntaxKind.AsteriskToken,
+        [SyntaxKind.SlashEqualsToken]: SyntaxKind.SlashToken,
+        [SyntaxKind.AsteriskAsteriskEqualsToken]: SyntaxKind.AsteriskAsteriskToken,
+    } as Record<SyntaxKind, BinaryOperator | undefined>;
 
     function __tsover__findBinarySignature(signatures: readonly Signature[], lhs: Type, rhs: Type): Type | undefined {
         // Find a signature where the first parameter accepts lhs and second accepts rhs
@@ -297,7 +292,9 @@ try {
       _leftType: Type,
       _rightType: Type,
     ): boolean {
-        if (!(__tsover__isInUseTsoverScope(left) || __tsover__isInUseGpuScope(left)) || !__tsover__overloaded[operator as keyof typeof __tsover__overloaded]) {
+        const baseOp = __tsover__compoundOperators[operator] ?? operator;
+        const knownSymbolName = __tsover__overloaded[baseOp as keyof typeof __tsover__overloaded];
+        if (!(__tsover__isInUseTsoverScope(left) || __tsover__isInUseGpuScope(left)) || !knownSymbolName) {
             return false;
         }
 
@@ -316,11 +313,8 @@ try {
             typesToCheck.push(rightType);
         }
 
-        const symbols = __tsover__overloaded[operator as keyof typeof __tsover__overloaded].map(getPropertyNameForKnownSymbolName);
-        return typesToCheck.some((aType) => {
-          const member = symbols.reduce<Type | undefined>((acc, symbol) => acc ?? getTypeOfPropertyOfType(aType, symbol), undefined);
-          return member !== undefined;
-        });
+        const propertyName = getPropertyNameForKnownSymbolName(knownSymbolName);
+        return typesToCheck.some((aType) => !!getTypeOfPropertyOfType(aType, propertyName));
     }
 
     function __tsover__getOverloadReturnType(
@@ -331,7 +325,9 @@ try {
       _rightType: Type,
       checkDeeper: (lt: Type, rt: Type) => Type | undefined,
     ): Type | undefined {
-        if (!(__tsover__isInUseTsoverScope(left) || __tsover__isInUseGpuScope(left)) || !__tsover__overloaded[operator as keyof typeof __tsover__overloaded]) {
+        const baseOp = __tsover__compoundOperators[operator] ?? operator;
+        const knownSymbolName = __tsover__overloaded[baseOp as keyof typeof __tsover__overloaded];
+        if (!(__tsover__isInUseTsoverScope(left) || __tsover__isInUseGpuScope(left)) || !knownSymbolName) {
             return undefined;
         }
 
@@ -368,11 +364,11 @@ try {
         }
 
         const deferOperationType = __tsover__getDeferOperationSymbolType();
-        const symbols = __tsover__overloaded[operator as keyof typeof __tsover__overloaded].map(getPropertyNameForKnownSymbolName);
+        const propertyName = getPropertyNameForKnownSymbolName(knownSymbolName);
         let resultMembers: Type[] = [];
         for (const [leftType, rightType] of combinations) {
-            const lhsOverload = symbols.reduce<Type | undefined>((acc, symbol) => acc ?? getTypeOfPropertyOfType(leftType, symbol), undefined);
-            const rhsOverload = symbols.reduce<Type | undefined>((acc, symbol) => acc ?? getTypeOfPropertyOfType(rightType, symbol), undefined);
+            const lhsOverload = getTypeOfPropertyOfType(leftType, propertyName);
+            const rhsOverload = getTypeOfPropertyOfType(rightType, propertyName);
             const lhsSignatures = lhsOverload ? getSignaturesOfType(lhsOverload, SignatureKind.Call) : [];
             let resultType = __tsover__findBinarySignature(lhsSignatures, leftType, rightType);
 
@@ -435,7 +431,7 @@ try {
         (lt, rt) => checkBinaryLikeExpressionWorker(left, operatorToken, right, lt, rt, checkMode, errorNode),
       );
       if (overloadedType) {
-          if (__tsover__assignmentOperators.includes(operator)) {
+          if (operator in __tsover__compoundOperators) {
             checkAssignmentOperator(overloadedType);
           }
           return overloadedType;
