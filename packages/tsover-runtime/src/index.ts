@@ -16,6 +16,7 @@ declare global {
     readonly operatorStar: unique symbol;
     readonly operatorSlash: unique symbol;
     readonly operatorStarStar: unique symbol;
+    readonly operatorPercent: unique symbol;
     readonly operatorEqEq: unique symbol;
 
     // unary operations
@@ -169,6 +170,22 @@ function pow(a: unknown, b: unknown): unknown {
   return binOp(a, b, Operator.starStar, normalPow);
 }
 
+const normalMod = (a: number, b: number) => a % b;
+
+/**
+ * Performs the % operation with support for operator overloading
+ * If either operand has Symbol.operatorPercent, uses that operator
+ * Otherwise falls back to standard JavaScript % behavior
+ */
+function mod(a: unknown, b: unknown): unknown {
+  // Fast paths for numerics
+  if (typeof a === 'number' && typeof b === 'number') {
+    return a % b;
+  }
+
+  return binOp(a, b, Operator.percent, normalMod);
+}
+
 export const Operator = /* @__PURE__ */ (() => {
   polyfillSymbol('deferOperation');
 
@@ -177,6 +194,7 @@ export const Operator = /* @__PURE__ */ (() => {
   polyfillSymbol('operatorStar');
   polyfillSymbol('operatorSlash');
   polyfillSymbol('operatorStarStar');
+  polyfillSymbol('operatorPercent');
   polyfillSymbol('operatorEqEq');
 
   polyfillSymbol('operatorPrePlusPlus');
@@ -190,6 +208,7 @@ export const Operator = /* @__PURE__ */ (() => {
   (globalThis as any).__tsover_mul = mul;
   (globalThis as any).__tsover_div = div;
   (globalThis as any).__tsover_pow = pow;
+  (globalThis as any).__tsover_mod = mod;
 
   return {
     deferOperation: Symbol.deferOperation,
@@ -198,6 +217,7 @@ export const Operator = /* @__PURE__ */ (() => {
     star: Symbol.operatorStar,
     slash: Symbol.operatorSlash,
     starStar: Symbol.operatorStarStar,
+    percent: Symbol.operatorPercent,
     eqEq: Symbol.operatorEqEq,
 
     prePlusPlus: Symbol.operatorPrePlusPlus,

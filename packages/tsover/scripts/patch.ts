@@ -182,7 +182,7 @@ try {
     patchErrors.push(error);
   }
 
-  // Patch checker.ts - add operatorPlus support
+  // Patch checker.ts
   const checkerPath = resolve(typescriptTargetDir, 'src', 'compiler', 'checker.ts');
   let checkerContent = await readFile(checkerPath, 'utf-8');
 
@@ -208,6 +208,7 @@ try {
         [SyntaxKind.AsteriskToken]: 'operatorStar',
         [SyntaxKind.SlashToken]: 'operatorSlash',
         [SyntaxKind.AsteriskAsteriskToken]: 'operatorStarStar',
+        [SyntaxKind.PercentToken]: 'operatorPercent',
     };
 
     const __tsover__compoundOperators = {
@@ -216,6 +217,7 @@ try {
         [SyntaxKind.AsteriskEqualsToken]: SyntaxKind.AsteriskToken,
         [SyntaxKind.SlashEqualsToken]: SyntaxKind.SlashToken,
         [SyntaxKind.AsteriskAsteriskEqualsToken]: SyntaxKind.AsteriskAsteriskToken,
+        [SyntaxKind.PercentEqualsToken]: SyntaxKind.PercentToken,
     } as Record<SyntaxKind, BinaryOperator | undefined>;
 
     function __tsover__findBinarySignature(signatures: readonly Signature[], lhs: Type, rhs: Type): Type | undefined {
@@ -535,6 +537,7 @@ interface SymbolConstructor {
     readonly operatorStar: unique symbol;
     readonly operatorSlash: unique symbol;
     readonly operatorStarStar: unique symbol;
+    readonly operatorPercent: unique symbol;
     readonly operatorEqEq: unique symbol;
 
     // unary operations
