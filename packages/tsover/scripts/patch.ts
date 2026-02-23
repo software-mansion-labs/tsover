@@ -220,6 +220,346 @@ try {
         SyntaxKind.SlashEqualsToken,
     ];
 
+    function __tsover__BRUH(node: CallLikeExpression, signatures: readonly Signature[], checkMode: CheckMode, callChainFlags: SignatureFlags, headMessage?: DiagnosticMessage): Type | undefined {
+        // TODO: Fold constants
+        const candidatesOutArray = undefined;
+        const isTaggedTemplate = false;
+        const isDecorator = false;
+        const isJsxOpeningOrSelfClosingElement = false;
+        const isJsxOpenFragment = false;
+        const isInstanceof = false;
+        const reportErrors = !isInferencePartiallyBlocked;
+
+        // The following variables are captured and modified by calls to chooseOverload.
+        // If overload resolution or type argument inference fails, we want to report the
+        // best error possible. The best error is one which says that an argument was not
+        // assignable to a parameter. This implies that everything else about the overload
+        // was fine. So if there is any overload that is only incorrect because of an
+        // argument, we will report an error on that one.
+        //
+        //     function foo(s: string): void;
+        //     function foo(n: number): void; // Report argument error on this overload
+        //     function foo(): void;
+        //     foo(true);
+        //
+        // If none of the overloads even made it that far, there are two possibilities.
+        // There was a problem with type arguments for some overload, in which case
+        // report an error on that. Or none of the overloads even had correct arity,
+        // in which case give an arity error.
+        //
+        //     function foo<T extends string>(x: T): void; // Report type argument error
+        //     function foo(): void;
+        //     foo<number>(0);
+        //
+        let candidatesForArgumentError: Signature[] | undefined;
+        let candidateForArgumentArityError: Signature | undefined;
+        let candidateForTypeArgumentError: Signature | undefined; // TODO: <- should be necessary
+        let result: Signature | undefined;
+        let argCheckMode = CheckMode.Normal;
+
+        let candidates: Signature[] = [];
+        const typeArguments: NodeArray<TypeNode> | undefined = (node as CallExpression).typeArguments;
+
+        // We already perform checking on the type arguments on the class declaration itself.
+        forEach(typeArguments, checkSourceElement);
+
+        candidates = candidatesOutArray || [];
+        // reorderCandidates fills up the candidates array directly
+        reorderCandidates(signatures, candidates, callChainFlags);
+        if (!isJsxOpenFragment) {
+            if (!candidates.length) {
+                if (reportErrors) {
+                    diagnostics.add(getDiagnosticForCallNode(node, Diagnostics.Call_target_does_not_contain_any_signatures));
+                }
+                return resolveErrorCall(node);
+            }
+        }
+        const args = getEffectiveCallArguments(node);
+
+        // The excludeArgument array contains true for each context sensitive argument (an argument
+        // is context sensitive it is susceptible to a one-time permanent contextual typing).
+        //
+        // The idea is that we will perform type argument inference & assignability checking once
+        // without using the susceptible parameters that are functions, and once more for those
+        // parameters, contextually typing each as we go along.
+        //
+        // For a tagged template, then the first argument be 'undefined' if necessary because it
+        // represents a TemplateStringsArray.
+        //
+        // For a decorator, no arguments are susceptible to contextual typing due to the fact
+        // decorators are applied to a declaration by the emitter, and not to an expression.
+        const isSingleNonGenericCandidate = candidates.length === 1 && !candidates[0].typeParameters;
+        if (!isDecorator && !isSingleNonGenericCandidate && some(args, isContextSensitive)) {
+            argCheckMode = CheckMode.SkipContextSensitive;
+        }
+
+        // If we are in signature help, a trailing comma indicates that we intend to provide another argument,
+        // so we will only accept overloads with arity at least 1 higher than the current number of provided arguments.
+        const signatureHelpTrailingComma = !!(checkMode & CheckMode.IsForSignatureHelp) && node.kind === SyntaxKind.CallExpression && node.arguments.hasTrailingComma;
+
+        // Section 4.12.1:
+        // if the candidate list contains one or more signatures for which the type of each argument
+        // expression is a subtype of each corresponding parameter type, the return type of the first
+        // of those signatures becomes the return type of the function call.
+        // Otherwise, the return type of the first signature in the candidate list becomes the return
+        // type of the function call.
+        //
+        // Whether the call is an error is determined by assignability of the arguments. The subtype pass
+        // is just important for choosing the best signature. So in the case where there is only one
+        // signature, the subtype pass is useless. So skipping it is an optimization.
+        if (candidates.length > 1) {
+            result = chooseOverload(candidates, subtypeRelation, isSingleNonGenericCandidate, signatureHelpTrailingComma);
+        }
+        if (!result) {
+            result = chooseOverload(candidates, assignableRelation, isSingleNonGenericCandidate, signatureHelpTrailingComma);
+        }
+        const links = getNodeLinks(node);
+        if (links.resolvedSignature !== resolvingSignature && !candidatesOutArray) {
+            // There are 2 situations in which it's good to preemptively return the cached result here:
+            //
+            // 1. if the signature resolution originated on a node that itself depends on the contextual type
+            // then it's possible that the resolved signature might not be the same as the one that would be computed in source order
+            // since resolving such signature leads to resolving the potential outer signature, its arguments and thus the very same signature
+            // it's possible that this inner resolution sets the resolvedSignature first.
+            // In such a case we ignore the local result and reuse the correct one that was cached.
+            //
+            // 2. In certain circular-like situations it's possible that the compiler reentries this function for the same node.
+            // It's possible to resolve the inner call against preemptively set empty members (for example in 'resolveAnonymousTypeMembers') of some type.
+            // When that happens the compiler might report an error for that inner call but at the same time it might end up resolving the actual members of the other type.
+            // This in turn creates a situation in which the outer call fails in 'getSignatureApplicabilityError' due to a cached 'RelationComparisonResult.Failed'
+            // but when the compiler tries to report that error (in the code below) it also tries to elaborate it and that can succeed as types would be related against the *resolved* members of the other type.
+            // This can hit 'No error for last overload signature' assert but since that error was already reported when the inner call failed we can skip this step altogether here by returning the cached signature early.
+            Debug.assert(links.resolvedSignature);
+            return links.resolvedSignature;
+        }
+        if (result) {
+            return result;
+        }
+        result = getCandidateForOverloadFailure(node, candidates, args, !!candidatesOutArray, checkMode);
+        // Preemptively cache the result; getResolvedSignature will do this after we return, but
+        // we need to ensure that the result is present for the error checks below so that if
+        // this signature is encountered again, we handle the circularity (rather than producing a
+        // different result which may produce no errors and assert). Callers of getResolvedSignature
+        // don't hit this issue because they only observe this result after it's had a chance to
+        // be cached, but the error reporting code below executes before getResolvedSignature sets
+        // resolvedSignature.
+        links.resolvedSignature = result;
+
+        // No signatures were applicable. Now report errors based on the last applicable signature with
+        // no arguments excluded from assignability checks.
+        // If candidate is undefined, it means that no candidates had a suitable arity. In that case,
+        // skip the checkApplicableSignature check.
+        if (reportErrors) {
+            // If the call expression is a synthetic call to a '[Symbol.hasInstance]' method then we will produce a head
+            // message when reporting diagnostics that explains how we got to 'right[Symbol.hasInstance](left)' from
+            // 'left instanceof right', as it pertains to "Argument" related messages reported for the call.
+            if (!headMessage && isInstanceof) {
+                headMessage = Diagnostics.The_left_hand_side_of_an_instanceof_expression_must_be_assignable_to_the_first_argument_of_the_right_hand_side_s_Symbol_hasInstance_method;
+            }
+            if (candidatesForArgumentError) {
+                if (candidatesForArgumentError.length === 1 || candidatesForArgumentError.length > 3) {
+                    const last = candidatesForArgumentError[candidatesForArgumentError.length - 1];
+                    let chain: DiagnosticMessageChain | undefined;
+                    if (candidatesForArgumentError.length > 3) {
+                        chain = chainDiagnosticMessages(chain, Diagnostics.The_last_overload_gave_the_following_error);
+                        chain = chainDiagnosticMessages(chain, Diagnostics.No_overload_matches_this_call);
+                    }
+                    if (headMessage) {
+                        chain = chainDiagnosticMessages(chain, headMessage);
+                    }
+                    const diags = getSignatureApplicabilityError(node, args, last, assignableRelation, CheckMode.Normal, /*reportErrors*/ true, () => chain);
+                    if (diags) {
+                        for (const d of diags) {
+                            if (last.declaration && candidatesForArgumentError.length > 3) {
+                                addRelatedInfo(d, createDiagnosticForNode(last.declaration, Diagnostics.The_last_overload_is_declared_here));
+                            }
+                            addImplementationSuccessElaboration(last, d);
+                            diagnostics.add(d);
+                        }
+                    }
+                    else {
+                        Debug.fail("No error for last overload signature");
+                    }
+                }
+                else {
+                    const allDiagnostics: (readonly DiagnosticRelatedInformation[])[] = [];
+                    let max = 0;
+                    let min = Number.MAX_VALUE;
+                    let minIndex = 0;
+                    let i = 0;
+                    for (const c of candidatesForArgumentError) {
+                        const chain = () => chainDiagnosticMessages(/*details*/ undefined, Diagnostics.Overload_0_of_1_2_gave_the_following_error, i + 1, candidates.length, signatureToString(c));
+                        const diags = getSignatureApplicabilityError(node, args, c, assignableRelation, CheckMode.Normal, /*reportErrors*/ true, chain);
+                        if (diags) {
+                            if (diags.length <= min) {
+                                min = diags.length;
+                                minIndex = i;
+                            }
+                            max = Math.max(max, diags.length);
+                            allDiagnostics.push(diags);
+                        }
+                        else {
+                            Debug.fail("No error for 3 or fewer overload signatures");
+                        }
+                        i++;
+                    }
+
+                    const diags = max > 1 ? allDiagnostics[minIndex] : flatten(allDiagnostics);
+                    Debug.assert(diags.length > 0, "No errors reported for 3 or fewer overload signatures");
+                    let chain = chainDiagnosticMessages(
+                        map(diags, createDiagnosticMessageChainFromDiagnostic),
+                        Diagnostics.No_overload_matches_this_call,
+                    );
+                    if (headMessage) {
+                        chain = chainDiagnosticMessages(chain, headMessage);
+                    }
+                    // The below is a spread to guarantee we get a new (mutable) array - our 'flatMap' helper tries to do "smart" optimizations where it reuses input
+                    // arrays and the emptyArray singleton where possible, which is decidedly not what we want while we're still constructing this diagnostic
+                    const related = [...flatMap(diags, d => (d as Diagnostic).relatedInformation) as DiagnosticRelatedInformation[]];
+                    let diag: Diagnostic;
+                    if (every(diags, d => d.start === diags[0].start && d.length === diags[0].length && d.file === diags[0].file)) {
+                        const { file, start, length } = diags[0];
+                        diag = { file, start, length, code: chain.code, category: chain.category, messageText: chain, relatedInformation: related };
+                    }
+                    else {
+                        diag = createDiagnosticForNodeFromMessageChain(getSourceFileOfNode(node), getErrorNodeForCallNode(node), chain, related);
+                    }
+                    addImplementationSuccessElaboration(candidatesForArgumentError[0], diag);
+                    diagnostics.add(diag);
+                }
+            }
+            else if (candidateForArgumentArityError) {
+                diagnostics.add(getArgumentArityError(node, [candidateForArgumentArityError], args, headMessage));
+            }
+            else if (candidateForTypeArgumentError) {
+                checkTypeArguments(candidateForTypeArgumentError, (node as CallExpression | TaggedTemplateExpression | JsxOpeningLikeElement).typeArguments!, /*reportErrors*/ true, headMessage);
+            }
+            else if (!isJsxOpenFragment) {
+                const signaturesWithCorrectTypeArgumentArity = filter(signatures, s => hasCorrectTypeArgumentArity(s, typeArguments));
+                if (signaturesWithCorrectTypeArgumentArity.length === 0) {
+                    diagnostics.add(getTypeArgumentArityError(node, signatures, typeArguments!, headMessage));
+                }
+                else {
+                    diagnostics.add(getArgumentArityError(node, signaturesWithCorrectTypeArgumentArity, args, headMessage));
+                }
+            }
+        }
+
+        // return result;
+        return getReturnTypeOfSignature(result);
+
+        function addImplementationSuccessElaboration(failed: Signature, diagnostic: Diagnostic) {
+            const oldCandidatesForArgumentError = candidatesForArgumentError;
+            const oldCandidateForArgumentArityError = candidateForArgumentArityError;
+            const oldCandidateForTypeArgumentError = candidateForTypeArgumentError;
+
+            const failedSignatureDeclarations = failed.declaration?.symbol?.declarations || emptyArray;
+            const isOverload = failedSignatureDeclarations.length > 1;
+            const implDecl = isOverload ? find(failedSignatureDeclarations, d => isFunctionLikeDeclaration(d) && nodeIsPresent(d.body)) : undefined;
+            if (implDecl) {
+                const candidate = getSignatureFromDeclaration(implDecl as FunctionLikeDeclaration);
+                const isSingleNonGenericCandidate = !candidate.typeParameters;
+                if (chooseOverload([candidate], assignableRelation, isSingleNonGenericCandidate)) {
+                    addRelatedInfo(diagnostic, createDiagnosticForNode(implDecl, Diagnostics.The_call_would_have_succeeded_against_this_implementation_but_implementation_signatures_of_overloads_are_not_externally_visible));
+                }
+            }
+
+            candidatesForArgumentError = oldCandidatesForArgumentError;
+            candidateForArgumentArityError = oldCandidateForArgumentArityError;
+            candidateForTypeArgumentError = oldCandidateForTypeArgumentError;
+        }
+
+        function chooseOverload(candidates: Signature[], relation: Map<string, RelationComparisonResult>, isSingleNonGenericCandidate: boolean, signatureHelpTrailingComma = false) {
+            candidatesForArgumentError = undefined;
+            candidateForArgumentArityError = undefined;
+            candidateForTypeArgumentError = undefined;
+
+            if (isSingleNonGenericCandidate) {
+                const candidate = candidates[0];
+                if (some(typeArguments) || !hasCorrectArity(node, args, candidate, signatureHelpTrailingComma)) {
+                    return undefined;
+                }
+                if (getSignatureApplicabilityError(node, args, candidate, relation, CheckMode.Normal, /*reportErrors*/ false, /*containingMessageChain*/ undefined)) {
+                    candidatesForArgumentError = [candidate];
+                    return undefined;
+                }
+                return candidate;
+            }
+
+            for (let candidateIndex = 0; candidateIndex < candidates.length; candidateIndex++) {
+                const candidate = candidates[candidateIndex];
+                if (!hasCorrectTypeArgumentArity(candidate, typeArguments) || !hasCorrectArity(node, args, candidate, signatureHelpTrailingComma)) {
+                    continue;
+                }
+
+                let checkCandidate: Signature;
+                let inferenceContext: InferenceContext | undefined;
+
+                if (candidate.typeParameters) {
+                    let typeArgumentTypes: Type[] | undefined;
+                    if (some(typeArguments)) {
+                        typeArgumentTypes = checkTypeArguments(candidate, typeArguments, /*reportErrors*/ false);
+                        if (!typeArgumentTypes) {
+                            candidateForTypeArgumentError = candidate;
+                            continue;
+                        }
+                    }
+                    else {
+                        inferenceContext = createInferenceContext(candidate.typeParameters, candidate, /*flags*/ isInJSFile(node) ? InferenceFlags.AnyDefault : InferenceFlags.None);
+                        typeArgumentTypes = inferTypeArguments(node, candidate, args, argCheckMode | CheckMode.SkipGenericFunctions, inferenceContext);
+                        argCheckMode |= inferenceContext.flags & InferenceFlags.SkippedGenericFunction ? CheckMode.SkipGenericFunctions : CheckMode.Normal;
+                    }
+                    checkCandidate = getSignatureInstantiation(candidate, typeArgumentTypes, isInJSFile(candidate.declaration), inferenceContext && inferenceContext.inferredTypeParameters);
+                    // If the original signature has a generic rest type, instantiation may produce a
+                    // signature with different arity and we need to perform another arity check.
+                    if (getNonArrayRestType(candidate) && !hasCorrectArity(node, args, checkCandidate, signatureHelpTrailingComma)) {
+                        candidateForArgumentArityError = checkCandidate;
+                        continue;
+                    }
+                }
+                else {
+                    checkCandidate = candidate;
+                }
+                if (getSignatureApplicabilityError(node, args, checkCandidate, relation, argCheckMode, /*reportErrors*/ false, /*containingMessageChain*/ undefined)) {
+                    // Give preference to error candidates that have no rest parameters (as they are more specific)
+                    (candidatesForArgumentError || (candidatesForArgumentError = [])).push(checkCandidate);
+                    continue;
+                }
+                if (argCheckMode) {
+                    // If one or more context sensitive arguments were excluded, we start including
+                    // them now (and keeping do so for any subsequent candidates) and perform a second
+                    // round of type inference and applicability checking for this particular candidate.
+                    argCheckMode = CheckMode.Normal;
+                    if (inferenceContext) {
+                        const typeArgumentTypes = inferTypeArguments(node, candidate, args, argCheckMode, inferenceContext);
+                        checkCandidate = getSignatureInstantiation(candidate, typeArgumentTypes, isInJSFile(candidate.declaration), inferenceContext.inferredTypeParameters);
+                        // If the original signature has a generic rest type, instantiation may produce a
+                        // signature with different arity and we need to perform another arity check.
+                        if (getNonArrayRestType(candidate) && !hasCorrectArity(node, args, checkCandidate, signatureHelpTrailingComma)) {
+                            candidateForArgumentArityError = checkCandidate;
+                            continue;
+                        }
+                    }
+                    if (getSignatureApplicabilityError(node, args, checkCandidate, relation, argCheckMode, /*reportErrors*/ false, /*containingMessageChain*/ undefined)) {
+                        // Give preference to error candidates that have no rest parameters (as they are more specific)
+                        (candidatesForArgumentError || (candidatesForArgumentError = [])).push(checkCandidate);
+                        continue;
+                    }
+                }
+                candidates[candidateIndex] = checkCandidate;
+                return checkCandidate;
+            }
+
+            return undefined;
+        }
+    }
+
+    function __tsover__resolveOverloadCall(method: Expression, lhs: Expression, rhs: Expression, checkMode: CheckMode): Type | undefined {
+        const fakeCallExpression = factory.createCallExpression(method, undefined, [lhs, rhs]);
+        const result = checkCallExpression(resolveCallExpression(fakeCallExpression, undefined, [lhs, rhs], checkMode));
+        return result;
+    }
+
     function __tsover__findBinarySignature(signatures: readonly Signature[], lhs: Type, rhs: Type): Type | undefined {
         // Find a signature where the first parameter accepts lhs and second accepts rhs
         for (const signature of signatures) {
@@ -332,51 +672,18 @@ try {
             return undefined;
         }
 
-        let combinations: [Type, Type][] = [];
-        {
-            const leftType = getBaseConstraintOrType(_leftType);
-            const rightType = getBaseConstraintOrType(_rightType);
-
-            // _leftType is a constrained type (a generic), and _rightType is of the same type.
-            // If they're unions, we only need to consider the combinations where lhs and rhs match.
-            if (_leftType === _rightType && _leftType !== leftType) {
-                if (leftType.flags & TypeFlags.Union) {
-                    combinations = (leftType as UnionType).types.map(t => [t, t]);
-                } else {
-                    combinations = [[leftType, leftType]];
-                }
-            } else if (leftType.flags & TypeFlags.Union && rightType.flags & TypeFlags.Union) {
-                for (const leftMember of (leftType as UnionType).types) {
-                    for (const rightMember of (rightType as UnionType).types) {
-                        combinations.push([leftMember, rightMember]);
-                    }
-                }
-            } else if (leftType.flags & TypeFlags.Union) {
-                for (const leftMember of (leftType as UnionType).types) {
-                    combinations.push([leftMember, rightType]);
-                }
-            } else if (rightType.flags & TypeFlags.Union) {
-                for (const rightMember of (rightType as UnionType).types) {
-                    combinations.push([leftType, rightMember]);
-                }
-            } else {
-              combinations.push([leftType, rightType]);
-            }
-        }
-
         const deferOperationType = __tsover__getDeferOperationSymbolType();
+
         const symbols = __tsover__overloaded[operator as keyof typeof __tsover__overloaded].map(getPropertyNameForKnownSymbolName);
         let resultMembers: Type[] = [];
         for (const [leftType, rightType] of combinations) {
-            const lhsOverload = symbols.reduce<Type | undefined>((acc, symbol) => acc ?? getTypeOfPropertyOfType(leftType, symbol), undefined);
-            const rhsOverload = symbols.reduce<Type | undefined>((acc, symbol) => acc ?? getTypeOfPropertyOfType(rightType, symbol), undefined);
-            const lhsSignatures = lhsOverload ? getSignaturesOfType(lhsOverload, SignatureKind.Call) : [];
-            let resultType = __tsover__findBinarySignature(lhsSignatures, leftType, rightType);
+            const lhsOverload = symbols.reduce<Type | undefined>((acc, symbol) => acc ?? getPropertyOfType(leftType, symbol), undefined);
+            const rhsOverload = symbols.reduce<Type | undefined>((acc, symbol) => acc ?? getPropertyOfType(rightType, symbol), undefined);
+            let resultType = __tsover__resolveOverloadCall(lhsOverload, leftType, rightType);
 
-            if (lhsSignatures.length === 0 || (resultType && deferOperationType && isTypeIdenticalTo(resultType, deferOperationType))) {
+            if (resultType === undefined || (deferOperationType && isTypeIdenticalTo(resultType, deferOperationType))) {
                 // Try rhs overloads if lhs has no overloads or if result has deferOperation symbol
-                const rhsSignatures = rhsOverload ? getSignaturesOfType(rhsOverload, SignatureKind.Call) : [];
-                resultType = __tsover__findBinarySignature(rhsSignatures, leftType, rightType);
+                resultType = __tsover__resolveOverloadCall(rhsOverload, leftType, rightType);
             }
             if (resultType && deferOperationType && isTypeIdenticalTo(resultType, deferOperationType)) {
                 resultType = undefined;
