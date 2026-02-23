@@ -15,6 +15,8 @@ export const opToRuntimeFn = {
   [ts.SyntaxKind.SlashEqualsToken]: 'div',
   [ts.SyntaxKind.AsteriskAsteriskToken]: 'pow',
   [ts.SyntaxKind.AsteriskAsteriskEqualsToken]: 'pow',
+  [ts.SyntaxKind.PercentToken]: 'mod',
+  [ts.SyntaxKind.PercentEqualsToken]: 'mod',
 };
 
 export const assignmentOps = [
@@ -23,4 +25,5 @@ export const assignmentOps = [
   ts.SyntaxKind.AsteriskEqualsToken,
   ts.SyntaxKind.SlashEqualsToken,
   ts.SyntaxKind.AsteriskAsteriskEqualsToken,
+  ts.SyntaxKind.PercentEqualsToken,
 ];

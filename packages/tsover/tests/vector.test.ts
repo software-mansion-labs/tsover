@@ -41,6 +41,19 @@ class Vec2f {
     return Operator.deferOperation;
   }
 
+
+  [Operator.percent](lhs: Vec2f | number, rhs: Vec2f | number): Vec2f;
+  [Operator.percent](lhs: Vec2f | number, rhs: Vec2f | number): Vec2f | typeof Operator.deferOperation {
+    if (typeof lhs === 'number' && rhs instanceof Vec2f) {
+      return new Vec2f(lhs % rhs.x, lhs % rhs.y);
+    } else if (typeof rhs === 'number' && lhs instanceof Vec2f) {
+      return new Vec2f(lhs.x % rhs, lhs.y % rhs);
+    } else if (lhs instanceof Vec2f && rhs instanceof Vec2f) {
+      return new Vec2f(lhs.x % rhs.x, lhs.y % rhs.y);
+    }
+    return Operator.deferOperation;
+  }
+
   toString(): string {
     return `(${this.x}, ${this.y})`;
   }
@@ -90,6 +103,12 @@ test('A + B', () => {
   expect(new Vec2f(1, 2) + new Vec2f(3, 4)).toStrictEqual(new Vec2f(4, 6));
   // negative test
   expect(new Vec2f(1, 1) + new Vec2f(1, 1)).not.toStrictEqual(new Vec2f(6, 6));
+});
+
+test('A % B', () => {
+  'use tsover';
+
+  expect(new Vec2f(2.5, 6) % new Vec2f(1, 5)).toStrictEqual(new Vec2f(0.5, 1));
 });
 
 test('A ** B', () => {
