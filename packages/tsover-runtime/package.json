@@ -2,6 +2,12 @@
   "name": "tsover-runtime",
   "version": "0.0.4",
   "description": "Minimal runtime library for overloading operators in tsover",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/software-mansion-labs/tsover.git",
+    "directory": "packages/tsover-runtime"
+  },
+  "homepage": "https://software-mansion-labs.github.io/tsover",
   "keywords": [
     "operator-overloading",
     "typescript"

@@ -2,7 +2,9 @@
 
 A fork of TypeScript that adds only one functionality to the type checker... operator **over**loading.
 
-See [tsover README.md](packages/tsover/README.md) for documentation.
+## Documentation
+
+To get started, or to learn more about the project, [visit the official website](https://software-mansion-labs.github.io/tsover).
 
 ## tsover is created by Software Mansion
 
