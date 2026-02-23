@@ -13,6 +13,8 @@ export const opToRuntimeFn = {
   [ts.SyntaxKind.AsteriskEqualsToken]: 'mul',
   [ts.SyntaxKind.SlashToken]: 'div',
   [ts.SyntaxKind.SlashEqualsToken]: 'div',
+  [ts.SyntaxKind.AsteriskAsteriskToken]: 'pow',
+  [ts.SyntaxKind.AsteriskAsteriskEqualsToken]: 'pow',
 };
 
 export const assignmentOps = [
@@ -20,4 +22,5 @@ export const assignmentOps = [
   ts.SyntaxKind.MinusEqualsToken,
   ts.SyntaxKind.AsteriskEqualsToken,
   ts.SyntaxKind.SlashEqualsToken,
+  ts.SyntaxKind.AsteriskAsteriskEqualsToken,
 ];

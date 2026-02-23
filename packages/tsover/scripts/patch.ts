@@ -211,6 +211,8 @@ try {
         [SyntaxKind.AsteriskEqualsToken]: ['operatorStarEq', 'operatorStar'],
         [SyntaxKind.SlashToken]: ['operatorSlash'],
         [SyntaxKind.SlashEqualsToken]: ['operatorSlashEq', 'operatorSlash'],
+        [SyntaxKind.AsteriskAsteriskToken]: ['operatorStarStar'],
+        [SyntaxKind.AsteriskAsteriskEqualsToken]: ['operatorStarStarEq', 'operatorStarStar'],
     };
 
     const __tsover__assignmentOperators = [
@@ -218,6 +220,7 @@ try {
         SyntaxKind.MinusEqualsToken,
         SyntaxKind.AsteriskEqualsToken,
         SyntaxKind.SlashEqualsToken,
+        SyntaxKind.AsteriskAsteriskEqualsToken,
     ];
 
     function __tsover__findBinarySignature(signatures: readonly Signature[], lhs: Type, rhs: Type): Type | undefined {
@@ -535,6 +538,7 @@ interface SymbolConstructor {
     readonly operatorMinus: unique symbol;
     readonly operatorStar: unique symbol;
     readonly operatorSlash: unique symbol;
+    readonly operatorStarStar: unique symbol;
     readonly operatorEqEq: unique symbol;
 
     // unary operations

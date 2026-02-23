@@ -15,6 +15,7 @@ declare global {
     readonly operatorMinus: unique symbol;
     readonly operatorStar: unique symbol;
     readonly operatorSlash: unique symbol;
+    readonly operatorStarStar: unique symbol;
     readonly operatorEqEq: unique symbol;
 
     // unary operations
@@ -53,7 +54,7 @@ type WithBinOp<T extends symbol> = {
 };
 
 /**
- * Checks if a value has the Symbol.operatorPlus property
+ * Checks if a value has the [T] property
  */
 function hasOperator<T extends symbol>(value: unknown, operator: T): value is WithBinOp<T> {
   return typeof (value as Record<symbol, unknown>)?.[operator] === 'function';
@@ -152,6 +153,22 @@ function div(a: unknown, b: unknown): unknown {
   return binOp(a, b, Operator.slash, normalDiv);
 }
 
+const normalPow = (a: number, b: number) => a ** b;
+
+/**
+ * Performs the ** operation with support for operator overloading
+ * If either operand has Symbol.operatorStarStar, uses that operator
+ * Otherwise falls back to standard JavaScript ** behavior
+ */
+function pow(a: unknown, b: unknown): unknown {
+  // Fast paths for numerics
+  if (typeof a === 'number' && typeof b === 'number') {
+    return a ** b;
+  }
+
+  return binOp(a, b, Operator.starStar, normalPow);
+}
+
 export const Operator = /* @__PURE__ */ (() => {
   polyfillSymbol('deferOperation');
 
@@ -159,6 +176,7 @@ export const Operator = /* @__PURE__ */ (() => {
   polyfillSymbol('operatorMinus');
   polyfillSymbol('operatorStar');
   polyfillSymbol('operatorSlash');
+  polyfillSymbol('operatorStarStar');
   polyfillSymbol('operatorEqEq');
 
   polyfillSymbol('operatorPrePlusPlus');
@@ -171,6 +189,7 @@ export const Operator = /* @__PURE__ */ (() => {
   (globalThis as any).__tsover_sub = sub;
   (globalThis as any).__tsover_mul = mul;
   (globalThis as any).__tsover_div = div;
+  (globalThis as any).__tsover_pow = pow;
 
   return {
     deferOperation: Symbol.deferOperation,
@@ -178,6 +197,7 @@ export const Operator = /* @__PURE__ */ (() => {
     minus: Symbol.operatorMinus,
     star: Symbol.operatorStar,
     slash: Symbol.operatorSlash,
+    starStar: Symbol.operatorStarStar,
     eqEq: Symbol.operatorEqEq,
 
     prePlusPlus: Symbol.operatorPrePlusPlus,

@@ -26,6 +26,21 @@ class Vec2f {
     return Operator.deferOperation;
   }
 
+  [Operator.starStar](lhs: Vec2f, rhs: Vec2f | number): Vec2f;
+  [Operator.starStar](lhs: Vec2f, rhs: Vec2f | number): Vec2f | typeof Operator.deferOperation {
+    if (!(lhs instanceof Vec2f)) {
+      return Operator.deferOperation;
+    }
+
+    if (typeof rhs === 'number') {
+      return new Vec2f(lhs.x ** rhs, lhs.y ** rhs);
+    } else if (rhs instanceof Vec2f) {
+      return new Vec2f(lhs.x ** rhs.x, lhs.y ** rhs.y);
+    }
+
+    return Operator.deferOperation;
+  }
+
   toString(): string {
     return `(${this.x}, ${this.y})`;
   }
@@ -75,6 +90,12 @@ test('A + B', () => {
   expect(new Vec2f(1, 2) + new Vec2f(3, 4)).toStrictEqual(new Vec2f(4, 6));
   // negative test
   expect(new Vec2f(1, 1) + new Vec2f(1, 1)).not.toStrictEqual(new Vec2f(6, 6));
+});
+
+test('A ** B', () => {
+  'use tsover';
+
+  expect(new Vec2f(2, 3) ** new Vec2f(-1, 2)).toStrictEqual(new Vec2f(0.5, 9));
 });
 
 test('Vec2f | number, value * 2', () => {
